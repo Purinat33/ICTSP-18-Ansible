@@ -1,0 +1,236 @@
+---
+- name: Install commands
+  hosts: all
+  tasks:
+    - name: Ensure ping is available inside all containers
+      ansible.builtin.apt:
+        name: iputils-ping
+        state: present
+        update_cache: yes
+      become: true
+
+#- name: Set up routing rules to reach other subnets
+#  hosts: all
+#  become: true
+#  tasks:
+#    - name: Add static routes to other subnets via router
+#      shell: |
+#        {% if ansible_host.startswith('10.10.') %}
+#        ip route add 10.20.20.0/24 via 10.10.10.2 || true
+#        ip route add 10.30.30.0/24 via 10.10.10.2 || true
+#        {% elif ansible_host.startswith('10.20.') %}
+#        ip route add 10.10.10.0/24 via 10.20.20.2 || true
+#        ip route add 10.30.30.0/24 via 10.20.20.2 || true
+#        {% elif ansible_host.startswith('10.30.') %}
+#        ip route add 10.10.10.0/24 via 10.30.30.2 || true
+#        ip route add 10.20.20.0/24 via 10.30.30.2 || true
+#        {% endif %}#
+
+- name: Set routing info per host
+  hosts: all
+  gather_facts: false
+  vars:
+    router_ips:
+      site_a_net: 10.10.10.2
+      site_b_net: 10.20.20.2
+      mgmt_net:   10.30.30.2
+    all_routes:
+      agent_a_1:
+        router_ip: 10.10.10.2
+        other_routes:
+          - 10.20.20.0/24
+          - 10.30.30.0/24
+      server_a_1:
+        router_ip: 10.10.10.2
+        other_routes:
+          - 10.20.20.0/24
+          - 10.30.30.0/24
+      indexer_a_1:
+        router_ip: 10.10.10.2
+        other_routes:
+          - 10.20.20.0/24
+          - 10.30.30.0/24
+      server_b_1:
+        router_ip: 10.20.20.2
+        other_routes:
+          - 10.10.10.0/24
+          - 10.30.30.0/24
+      indexer_b_1:
+        router_ip: 10.20.20.2
+        other_routes:
+          - 10.10.10.0/24
+          - 10.30.30.0/24
+      dashboard_1:
+        router_ip: 10.30.30.2
+        other_routes:
+          - 10.10.10.0/24
+          - 10.20.20.0/24
+      router:
+        router_ip: ""
+        other_routes: []
+  tasks:
+    - name: Set router IP and routes for this host
+      set_fact:
+        router_ip: "{{ all_routes[inventory_hostname].router_ip }}"
+        other_routes: "{{ all_routes[inventory_hostname].other_routes }}"
+
+    - name: Debug routing info
+      debug:
+        msg: "For {{ inventory_hostname }}: adding {{ item }} via {{ router_ip }}"
+      loop: "{{ other_routes }}"
+      when: other_routes | length > 0
+
+
+    - name: Add route to other subnets via router
+      shell: "ip route add {{ item }} via {{ router_ip }} || true"
+      loop: "{{ other_routes }}"
+      when: other_routes | length > 0
+
+
+#    - name: Add route to other subnets via router
+#      shell: "ip route add {{ item }} via {{ router_ip }} || true"
+#      loop: "{{ other_routes }}"
+#      when: other_routes | length > 0
+#      args:
+#        warn: false
+
+
+#- name: Set up routing rules to reach other subnets
+#  hosts: all
+#  become: true
+#  tasks:
+#    - name: Set router interface based on subnet
+#      set_fact:
+#        router_ip: >-
+#          {% if ansible_host.startswith('10.10.') %}
+#          10.10.10.2
+#          {% elif ansible_host.startswith('10.20.') %}
+#          10.20.20.2
+#          {% elif ansible_host.startswith('10.30.') %}
+#          10.30.30.2
+#          {% else %}
+#          ""
+##          {% endif %}
+#        other_routes: >-
+#          {% if ansible_host.startswith('10.10.') %}
+#          ["10.20.20.0/24", "10.30.30.0/24"]
+#          {% elif ansible_host.startswith('10.20.') %}
+#          ["10.10.10.0/24", "10.30.30.0/24"]
+#          {% elif ansible_host.startswith('10.30.') %}
+#          ["10.10.10.0/24", "10.20.20.0/24"]
+#          {% else %}
+##          []
+ #         {% endif %}
+
+#    - name: Add route to other subnets via router
+#      shell: "ip route add {{ item }} via {{ router_ip }} || true"
+#      with_items: "{{ other_routes }}"
+#      when: router_ip != ""
+#      args:
+#        warn: false
+#    - name: Add route to other subnets via router
+#      shell: "ip route add {{ item }} via {{ router_ip }} || true"
+#      loop: "{{ other_routes }}"
+#      when: router_ip != '' and other_routes | length > 0
+#      args:
+#        warn: false
+
+
+
+- name: Test inter-container connectivity
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Test whoami
+      shell: whoami
+
+#- name: Test inter-container connectivity
+#  hosts: all
+#  tasks:
+#    - name: Ping server_a_1 from dashboard_1#
+#      shell: ping -c 1 192.168.133.22
+#      register: ping_result
+#      changed_when: false
+#      ignore_errors: true
+#
+#    - debug:
+#        var: ping_result.stdout_lines
+
+#- name: Everyone pings everyone
+#  hosts: all
+#  gather_facts: false
+#  become: false
+#  tasks:
+
+#    - name: Get list of all other hosts
+#      set_fact:
+#        other_hosts: "{{ groups['all'] | difference([inventory_hostname]) }}"
+
+#    - name: Ping from {{ inventory_hostname }} to each other host
+#      command: "ping -c 1 {{ hostvars[item].ansible_host }}"
+#      register: ping_result
+#      ignore_errors: true
+#      with_items: "{{ other_hosts }}"
+#      loop_control:
+#        label: "pinging {{ item }} ({{ hostvars[item].ansible_host }})"
+
+#- name: Everyone pings everyone
+#  hosts: all
+#  gather_facts: false
+#  become: false
+#  vars:
+#    other_hosts: "{{ groups['all'] | difference([inventory_hostname]) }}"
+#  tasks:
+#
+#    - name: Ping from {{ inventory_hostname }} to each other host
+#      shell: "ping -c 1 {{ item }}"
+#      register: ping_results
+#      ignore_errors: true
+#      loop: "{{ other_hosts }}"
+#      loop_control:
+#        label: "pinging {{ item }}"
+
+#    - name: Show ping results
+#      debug:
+#        msg: |
+#          Results from {{ inventory_hostname }}:
+#          {% for result in ping_results.results %}
+#            - To {{ result.item }}: {{ '✅ SUCCESS' if result.rc == 0 else '❌ FAILED' }}
+#          {% endfor %}
+#      when: ping_results is defined and ping_results.results is defined#
+
+
+#    - name: Show ping results
+#      debug:
+#        msg: |
+#          Results from {{ inventory_hostname }}:
+#          {% for result in ping_result.results %}
+#            - To {{ result.item }} ({{ hostvars[result.item].ansible_host }}): 
+#              {{ 'SUCCESS' if result.rc == 0 else 'Failed' }}
+#          {% endfor %}
+
+#- name: Everyone pings everyone
+#  hosts: all
+#  gather_facts: false
+#  become: false
+#  vars:
+#    other_hosts: "{{ groups['all'] | difference([inventory_hostname]) }}"
+#  tasks:
+#    - name: Ping from {{ inventory_hostname }} to each other host
+#      shell: >
+#        ping -c 1 {{ hostvars[item]['ansible_host'] | default(item) }}
+#      register: ping_results
+#      ignore_errors: true
+#      loop: "{{ other_hosts }}"
+#      loop_control:
+#        label: "pinging {{ item }} ({{ hostvars[item].ansible_host }})"
+
+#    - name: Show ping results
+#      debug:
+#        msg: |
+#          Results from {{ inventory_hostname }}:
+#          {% for result in ping_results.results %}
+#            - To {{ result.item }}: {{ '✅ SUCCESS' if result.rc == 0 else '❌ FAILED' }}
+#          {% endfor %}
+#      when: ping_results is defined and ping_results.results is defined
+

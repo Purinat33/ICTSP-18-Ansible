@@ -1,0 +1,145 @@
+---
+- name: Book 6 - Install and Configure Wazuh Agents
+  hosts: agent
+  become: yes
+  vars_files:
+    - wazuh.yml
+
+  tasks:
+    - name: Install dependencies for Wazuh agent
+      apt:
+        name:
+          - curl
+          - apt-transport-https
+          - lsb-release
+          - gnupg
+        update_cache: yes
+
+    - name: Add Wazuh GPG key
+      shell: |
+        curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | gpg --dearmor > /usr/share/keyrings/wazuh.gpg
+        chmod 644 /usr/share/keyrings/wazuh.gpg
+      args:
+        creates: /usr/share/keyrings/wazuh.gpg
+
+    - name: Add Wazuh APT repository
+      copy:
+        dest: /etc/apt/sources.list.d/wazuh.list
+        content: |
+          deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main
+
+    - name: Install Wazuh agent
+      apt:
+        name: wazuh-agent
+        update_cache: yes
+        state: present
+
+    - name: Detect site prefix for agent
+      set_fact:
+        agent_site_group: "{{ group_names | select('match', '^site_.*_agent$') | list | first | default('') }}"
+        site_prefix: "{{ (group_names | select('match', '^site_.*_agent$') | list | first | default('')) | regex_replace('_agent$', '') }}"
+      when: group_names is defined
+
+    - name: Determine manager_host based on LB or master server
+      set_fact:
+        manager_host: >-
+          {% set lb_group = site_prefix + '_loadbalancer' %}
+          {% set server_group = site_prefix + '_server' %}
+          {% if lb_group in groups and groups[lb_group] | length > 0 %}
+            {{ groups[lb_group][0] }}
+          {% else %}
+            {{ (
+              groups[server_group] |
+              map('extract', hostvars) |
+              selectattr('master', 'defined') |
+              selectattr('master', 'equalto', 'true') |
+              map(attribute='inventory_hostname') |
+              list
+            )[0] }}
+           {% endif %}
+
+    - name: Set manager IP with fallback
+      set_fact:
+        manager_ip: >-
+          {{ hostvars[manager_host]['ansible_host']
+             if (manager_host in hostvars and hostvars[manager_host]['ansible_host'] is defined)
+             else '127.0.0.1' }}
+
+
+    - name: Debug manager_host
+      debug:
+        msg: "Manager host for {{ inventory_hostname }} is {{ manager_host }}"
+
+
+    - name: Set manager IP
+      set_fact:
+        manager_ip: "{{ hostvars[manager_host]['ansible_host'] | default('127.0.0.1') }}"
+
+
+    - name: Debug resolved manager_ip
+      debug:
+        msg: "Manager IP for {{ inventory_hostname }} is {{ manager_ip }}"
+
+#    - name: Render top block to temp file
+#      template:
+#        src: template/agents/client_ossec.conf.j2
+#        dest: /tmp/ossec_top_block.xml
+
+
+    - name: Generate ossec.conf for agents
+#    - debug:
+#        msg:
+#          - "site_agent_group: {{ site_agent_group }}"
+#          - "site_name: {{ site_name }}"
+#          - "site_server_group: {{ site_server_group }}"
+#          - "site_lb_group: {{ site_lb_group }}"
+      template:
+        src: template/agents/ossec.conf.j2
+        dest: /var/ossec/etc/ossec.conf
+        mode: '0644'
+
+#    - name: Render dynamic <client> block to temp file
+#      template:
+#        src: template/agents/client_ossec.conf.j2
+#        dest: /tmp/client_ossec_top.xml
+
+#    - name: Replace <client> block up to <client_buffer>
+#      replace:
+#        path: /var/ossec/etc/ossec.conf
+#        regexp: '(<ossec_config>\s*<client>.*?</client>\s*)(?=<client_buffer>)'
+#        replace: "{{ lookup('file', '/tmp/client_ossec_top.xml') | regex_escape() }}"
+#        backup: yes
+#    - name: Render top <client> block as a string (on control node)
+#      template:
+#        src: template/agents/client_ossec.conf.j2
+#        dest: /tmp/ossec_top_block.xml
+##      delegate_to: localhost
+#      run_once: true
+
+#    - name: Fetch rendered block from localhost
+#      slurp:
+#        src: /tmp/ossec_top_block.xml
+#      register: top_block
+
+#    - name: Replace <client> block up to <client_buffer> using rendered content
+#      replace:
+#        path: /var/ossec/etc/ossec.conf
+#        regexp: '(<ossec_config>\s*<client>.*?</client>\s*)(?=<client_buffer>)'
+#        replace: "{{ top_block['content'] | b64decode | regex_escape() }}"
+        #replace: "{{ top_block['content'] | b64decode }}"
+#        backup: yes
+
+
+    - name: Enable and start wazuh-agent
+      systemd:
+        name: wazuh-agent
+        enabled: yes
+        state: restarted
+
+
+#    - name: Clean up rendered temp file
+#      file:
+#        path: /tmp/ossec_top_block.xml
+#        state: absent
+#      delegate_to: localhost
+#      run_once: true

@@ -1,0 +1,67 @@
+---
+- name: Step 1 Generate config.yml and dashboard certificates
+  hosts: dashboard
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Ensure cert generation dir exists
+      file:
+        path: /home/{{ ansible_user }}
+        state: directory
+        mode: '0755'
+
+    - name: Check if root-ca.pem already exists
+      stat:
+        path: /home/{{ ansible_user }}/wazuh-certificates/root-ca.pem
+      register: root_ca_check
+
+    - name: Abort if root-ca.pem already exists
+      fail:
+        msg: "Root CA already exists! Aborting to avoid overwriting existing certificate authority."
+      when: root_ca_check.stat.exists
+
+    - name: Generate config.yml from template
+      template:
+        src: template/config.yml.j2
+        dest: /home/{{ ansible_user }}/config.yml
+
+    - name: Download Wazuh certificate tool
+      get_url:
+        url: https://packages.wazuh.com/4.11/wazuh-certs-tool.sh
+        dest: /home/{{ ansible_user }}/wazuh-certs-tool.sh
+        mode: '0755'
+
+    - name: Generate certificates and root-ca
+      command: bash ./wazuh-certs-tool.sh -A
+      args:
+        chdir: /home/{{ ansible_user }}
+
+    - name: Archive the generated certificates
+      command: tar -cvf wazuh-certificates.tar -C ./wazuh-certificates/ .
+      args:
+        chdir: /home/{{ ansible_user }}
+
+- name: Step 2 Copy root-ca.* to all Wazuh devices (excluding agents and dashboard)
+  hosts: wazuh:!agent:!dashboard
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Create cert destination dir if not exist
+      file:
+        path: /home/{{ ansible_user }}/certs
+        state: directory
+        mode: '0755'
+
+    - name: Copy root-ca.pem
+      copy:
+        src: /home/{{ hostvars['dashboard_1']['ansible_user'] }}/wazuh-certificates/root-ca.pem
+        dest: /home/{{ ansible_user }}/certs/root-ca.pem
+        mode: '0644'
+
+    - name: Copy root-ca.key
+      copy:
+        src: /home/{{ hostvars['dashboard_1']['ansible_user'] }}/wazuh-certificates/root-ca.key
+        dest: /home/{{ ansible_user }}/certs/root-ca.key
+        mode: '0600'

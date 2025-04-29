@@ -1,0 +1,134 @@
+---
+- name: Step 3 Install and configure Wazuh Indexer with certificates
+  hosts: indexer
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Install wazuh-indexer
+      command: echo "Hello World"
+#      apt:#
+#        name: wazuh-indexer
+#        state: present
+#        update_cache: yes
+
+#    - name: Download Wazuh certificate tool
+#      get_url:
+#        url: https://packages.wazuh.com/4.11/wazuh-certs-tool.sh
+#        dest: /home/{{ ansible_user }}/wazuh-certs-tool.sh
+#        mode: '0755'
+
+#    - name: Generate indexer config.yml
+#      template:
+#        src: template/config.yml.j2
+#        dest: /home/{{ ansible_user }}/config.yml
+
+#    - name: Remove existing wazuh-certificates directory if present
+#      file:
+#        path: /home/{{ ansible_user }}/wazuh-certificates
+#        state: absent#
+
+#    - name: Run certificate generation with received root-ca.*
+#      command: bash /home/{{ ansible_user }}/wazuh-certs-tool.sh -A /home/{{ ansible_user }}/certs/root-ca.pem /home/{{ ansible_user }}/certs/root-ca.key
+#      args:
+#        chdir: /home/{{ ansible_user }}
+
+#    - name: Archive the generated certificates
+#      command: tar -cvf wazuh-certificates.tar -C ./wazuh-certificates/ .
+#      args:
+#        chdir: /home/{{ ansible_user }}
+
+- name: Step 4 Modify opensearch.yml on indexers
+  hosts: indexer
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Generate opensearch.yml
+      template:
+        src: template/opensearch.yml.j2
+        dest: /etc/wazuh-indexer/opensearch.yml
+        mode: '0644'
+
+- name: Step 5 Move and rename cert files
+  hosts: indexer
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Remove old certs directory if it exists
+      file:
+        path: /etc/wazuh-indexer/certs
+        state: absent
+
+    - name: Create certs directory for indexer
+      file:
+        path: /etc/wazuh-indexer/certs
+        state: directory
+        owner: wazuh-indexer
+        group: wazuh-indexer
+        mode: '0500'
+
+    - name: Extract required cert files from tarball
+      unarchive:
+        src: /home/{{ ansible_user }}/wazuh-certificates.tar
+        dest: /etc/wazuh-indexer/certs
+        remote_src: yes
+
+    - name: Move NODE_NAME pem to indexer.pem
+      command: mv /etc/wazuh-indexer/certs/{{ inventory_hostname }}.pem /etc/wazuh-indexer/certs/indexer.pem
+
+    - name: Move NODE_NAME-key.pem to indexer-key.pem
+      command: mv /etc/wazuh-indexer/certs/{{ inventory_hostname }}-key.pem /etc/wazuh-indexer/certs/indexer-key.pem
+
+    - name: Set permissions for certs
+      file:
+        path: /etc/wazuh-indexer/certs
+        mode: '0500'
+        recurse: yes
+
+#    - name: Find all cert files in certs folder (excluding directories)
+#      find:
+#        paths: /etc/wazuh-indexer/certs
+#        file_type: file
+#      register: cert_files
+
+#    - name: Set permissions for each certificate file
+#      file:
+#        path: "{{ item.path }}"
+#        state: file
+#        mode: '0400'
+#        owner: root
+#        group: root
+#      loop: "{{ cert_files/files }}"
+
+    - name: Set ownership
+      file:
+        path: /etc/wazuh-indexer/certs
+        owner: wazuh-indexer
+        group: wazuh-indexer
+        recurse: yes
+
+    - name: Reload systemd configuration
+      command: systemctl daemon-reexec
+
+    - name: Enable Wazuh Indexer service
+      systemd:
+        name: wazuh-indexer
+        enabled: yes
+
+    - name: Start Wazuh Indexer service
+      systemd:
+        name: wazuh-indexer
+        state: started
+
+    - name: Restart indexer
+      systemd:
+        name: wazuh-indexer
+        state: restarted
+
+#    - name: Initialize Wazuh indexer security
+#      command: /usr/share/wazuh-indexer/bin/indexer-security-init.sh
+    - name: Initialize Wazuh indexer security (only on first indexer)
+      command: /usr/share/wazuh-indexer/bin/indexer-security-init.sh
+      when: inventory_hostname == (groups['indexer'] | sort | first)

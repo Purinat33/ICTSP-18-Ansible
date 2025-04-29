@@ -1,0 +1,8 @@
+nodes:
+  dashboard:
+    - name: dashboard_1
+      ip: 192.168.56.112
+
+# DEBUG: Rendering for dashboard_1
+# DEBUG: group_names = ['dashboard', 'site_dashboard', 'wazuh']
+# DEBUG: role = dashboard# DEBUG: IP = 192.168.56.112

@@ -1,0 +1,52 @@
+---
+- name: MOCK - Book 8 - Install and configure NGINX load balancer
+  hosts: loadbalancer
+  become: yes
+  tasks:
+    - name: MOCK - Update apt cache
+      debug:
+        msg: "MOCK: Would update apt cache"
+
+    - name: MOCK - Install nginx
+      debug:
+        msg: "MOCK: Would install nginx"
+
+    - name: MOCK - Ensure nginx is enabled and started
+      debug:
+        msg: "MOCK: Would enable and start nginx via systemd"
+
+    - name: MOCK - Check if stream module is compiled dynamically
+      debug:
+        msg: "MOCK: Would run 'nginx -V | grep dynamic' to inspect modules"
+
+    - name: MOCK - Install libnginx-mod-stream
+      debug:
+        msg: "MOCK: Would install libnginx-mod-stream"
+
+    - name: MOCK - Debug dynamic module info
+      debug:
+        msg: "MOCK: Would output nginx module info"
+
+    - name: MOCK - Remove include from http block
+      debug:
+        msg: "MOCK: Would remove 'include /etc/nginx/conf.d/*.conf;' from http block in nginx.conf"
+
+    - name: MOCK - Add include after modules include
+      debug:
+        msg: "MOCK: Would add 'include /etc/nginx/conf.d/*.conf;' after modules-enabled block in nginx.conf"
+
+    - name: MOCK - Reload NGINX
+      debug:
+        msg: "MOCK: Would reload nginx (first reload)"
+
+    - name: MOCK - Deploy Wazuh load balancer stream config
+      debug:
+        msg: "MOCK: Would render nginx_wazuh.conf.j2 to /etc/nginx/conf.d/wazuh_load_balancer.conf"
+
+    - name: MOCK - Test NGINX config
+      debug:
+        msg: "MOCK: Would run 'nginx -t' to test config validity"
+
+    - name: MOCK - Reload NGINX (after config applied)
+      debug:
+        msg: "MOCK: Would reload nginx (final reload)"

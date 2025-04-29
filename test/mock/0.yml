@@ -1,0 +1,14 @@
+---
+- name: MOCK - Verify sudo access
+  hosts: all
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Check current user (skipped)
+      debug:
+        msg: "MOCK: Skipping 'whoami' command"
+
+    - name: MOCK - Display current user (fake output)
+      debug:
+        msg: "MOCK: Current user is wazuh (simulated)"

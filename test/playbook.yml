@@ -1,0 +1,14 @@
+---
+- name: Render filebeat config for all servers
+  hosts: server
+  gather_facts: false
+  vars:
+    output_path: "./rendered/{{ inventory_hostname }}_filebeat.yml"
+  tasks:
+    - name: Render filebeat.yml for each server
+      template:
+        src: templates/filebeat.yml.j2
+        dest: "{{ output_path }}"
+    - debug:
+        msg: "{{ indexer_hosts }}"
+

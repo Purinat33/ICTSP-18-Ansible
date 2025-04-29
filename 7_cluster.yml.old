@@ -1,0 +1,38 @@
+---
+- name: Book 7 - Configure Wazuh Server Clustering for Multi-Server Sites
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Identify site group and count servers
+      set_fact:
+        site_group: "{{ group_names | select('match', '^site_.*_server$') | list | first }}"
+        server_count: "{{ groups[site_group] | length }}"
+
+    - name: Skip cluster config if site has only one server
+      debug:
+        msg: "Only one server in {{ site_group }}. Skipping clustering setup."
+      when: server_count | int == 1
+
+    - name: Set cluster facts if site has multiple servers
+      set_fact:
+        is_master: "{{ 'true' if (hostvars[inventory_hostname].master | default(false)) else 'false' }}"
+        cluster_node_type: "{{ 'master' if is_master == 'true' else 'worker' }}"
+        master_node: >-
+          {{ groups[site_group] | map('extract', hostvars) |
+             selectattr('master', 'defined') |
+             selectattr('master', 'equalto', 'true') |
+             map(attribute='inventory_hostname') |
+             list | first }}
+        master_ip: "{{ hostvars[master_node]['ansible_host'] }}"
+        cluster_key: "{{ hostvars[master_node]['cluster_key'] }}"
+      when: server_count | int > 1
+
+    - name: Deploy ossec.conf with cluster block
+      template:
+        src: template/server/ossec.conf.j2
+        dest: /var/ossec/etc/ossec.conf
+        mode: '0644'
+      when: server_count | int > 1
+

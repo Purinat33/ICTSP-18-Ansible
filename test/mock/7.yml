@@ -1,0 +1,11 @@
+---
+- name: MOCK - Book 7 - Configure Wazuh Server Clustering
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+
+  tasks:
+    - name: MOCK - Render ossec.conf for all servers (clustering logic handled in template)
+      debug:
+        msg: "MOCK: Would render template/server/ossec.conf.j2 to /var/ossec/etc/ossec.conf for {{ inventory_hostname }}"

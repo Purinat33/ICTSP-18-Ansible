@@ -1,0 +1,11 @@
+---
+- import_playbook: 0.yml
+- import_playbook: 1.yml
+- import_playbook: 2.yml
+- import_playbook: 3.yml
+- import_playbook: 4.yml
+- import_playbook: 5.yml
+- import_playbook: 6.yml
+- import_playbook: 7.yml
+- import_playbook: 8.yml
+- import_playbook: 9.yml

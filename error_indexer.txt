@@ -1,0 +1,163 @@
+fatal: [indexer_a_1]: FAILED! => {
+    "changed": true,
+    "cmd": [
+        "/usr/share/wazuh-indexer/bin/indexer-security-init.sh"
+    ],
+    "delta": "0:00:01.566648",
+    "end": "2025-04-28 19:01:38.086055",
+    "invocation": {
+        "module_args": {
+            "_raw_params": "/usr/share/wazuh-indexer/bin/indexer-security-init.sh",
+            "_uses_shell": false,
+            "argv": null,
+            "chdir": null,
+            "creates": null,
+            "executable": null,
+            "expand_argument_vars": true,
+            "removes": null,
+            "stdin": null,
+            "stdin_add_newline": true,
+            "strip_empty_ends": true
+        }
+    },
+    "msg": "non-zero return code",
+    "rc": 255,
+    "start": "2025-04-28 19:01:36.519407",
+    "stderr": "",
+    "stderr_lines": [],
+    "stdout": "**************************************************************************\n** This tool will be deprecated in the next major release of OpenSearch **\n** https://github.com/opensearch-project/security/issues/1755           **\n**************************************************************************\nSecurity Admin v7\nWill connect to 192.168.79.55:9200 ... done\nERR: An unexpected SSLHandshakeException occured: PKIX path validation failed: java.security.cert.CertPathValidatorException: Path does not chain with any of the trust anchors\nSee https://opensearch.org/docs/latest/clients/java-rest-high-level/ for troubleshooting.\nTrace:\njavax.net.ssl.SSLHandshakeException: PKIX path validation failed: java.security.cert.CertPathValidatorException: Path does not chain with any of the trust anchors\nSee https://opensearch.org/docs/latest/clients/java-rest-high-level/ for troubleshooting.\n\tat org.opensearch.client.RestClient.extractAndWrapCause(RestClient.java:948)\n\tat org.opensearch.client.RestClient.performRequest(RestClient.java:333)\n\tat org.opensearch.client.RestClient.performRequest(RestClient.java:321)\n\tat org.opensearch.security.tools.SecurityAdmin.execute(SecurityAdmin.java:572)\n\tat org.opensearch.security.tools.SecurityAdmin.main(SecurityAdmin.java:162)\nCaused by: javax.net.ssl.SSLHandshakeException: PKIX path validation failed: java.security.cert.CertPathValidatorException: Path does not chain with any of the trust anchors\n\tat java.base/sun.security.ssl.Alert.createSSLException(Alert.java:130)\n\tat java.base/sun.security.ssl.TransportContext.fatal(TransportContext.java:378)\n\tat java.base/sun.security.ssl.TransportContext.fatal(TransportContext.java:321)\n\tat java.base/sun.security.ssl.TransportContext.fatal(TransportContext.java:316)\n\tat java.base/sun.security.ssl.CertificateMessage$T13CertificateConsumer.checkServerCerts(CertificateMessage.java:1318)\n\tat java.base/sun.security.ssl.CertificateMessage$T13CertificateConsumer.onConsumeCertificate(CertificateMessage.java:1195)\n\tat java.base/sun.security.ssl.CertificateMessage$T13CertificateConsumer.consume(CertificateMessage.java:1138)\n\tat java.base/sun.security.ssl.SSLHandshake.consume(SSLHandshake.java:393)\n\tat java.base/sun.security.ssl.HandshakeContext.dispatch(HandshakeContext.java:476)\n\tat java.base/sun.security.ssl.SSLEngineImpl$DelegatedTask$DelegatedAction.run(SSLEngineImpl.java:1273)\n\tat java.base/sun.security.ssl.SSLEngineImpl$DelegatedTask$DelegatedAction.run(SSLEngineImpl.java:1260)\n\tat java.base/java.security.AccessController.doPrivileged(AccessController.java:714)\n\tat java.base/sun.security.ssl.SSLEngineImpl$DelegatedTask.run(SSLEngineImpl.java:1205)\n\tat org.apache.http.nio.reactor.ssl.SSLIOSession.doRunTask(SSLIOSession.java:289)\n\tat org.apache.http.nio.reactor.ssl.SSLIOSession.doHandshake(SSLIOSession.java:357)\n\tat org.apache.http.nio.reactor.ssl.SSLIOSession.isAppInputReady(SSLIOSession.java:545)\n\tat org.apache.http.impl.nio.reactor.AbstractIODispatch.inputReady(AbstractIODispatch.java:120)\n\tat org.apache.http.impl.nio.reactor.BaseIOReactor.readable(BaseIOReactor.java:162)\n\tat org.apache.http.impl.nio.reactor.AbstractIOReactor.processEvent(AbstractIOReactor.java:337)\n\tat org.apache.http.impl.nio.reactor.AbstractIOReactor.processEvents(AbstractIOReactor.java:315)\n\tat org.apache.http.impl.nio.reactor.AbstractIOReactor.execute(AbstractIOReactor.java:276)\n\tat org.apache.http.impl.nio.reactor.BaseIOReactor.execute(BaseIOReactor.java:104)\n\tat org.apache.http.impl.nio.reactor.AbstractMultiworkerIOReactor$Worker.run(AbstractMultiworkerIOReactor.java:591)\n\tat java.base/java.lang.Thread.run(Thread.java:1583)\nCaused by: sun.security.validator.ValidatorException: PKIX path validation failed: java.security.cert.CertPathValidatorException: Path does not chain with any of the trust anchors\n\tat java.base/sun.security.validator.PKIXValidator.doValidate(PKIXValidator.java:318)\n\tat java.base/sun.security.validator.PKIXValidator.engineValidate(PKIXValidator.java:267)\n\tat java.base/sun.security.validator.Validator.validate(Validator.java:256)\n\tat java.base/sun.security.ssl.X509TrustManagerImpl.checkTrusted(X509TrustManagerImpl.java:284)\n\tat java.base/sun.security.ssl.X509TrustManagerImpl.checkServerTrusted(X509TrustManagerImpl.java:144)\n\tat java.base/sun.security.ssl.CertificateMessage$T13CertificateConsumer.checkServerCerts(CertificateMessage.java:1296)\n\t... 19 more\nCaused by: java.security.cert.CertPathValidatorException: Path does not chain with any of the trust anchors\n\tat java.base/sun.security.provider.certpath.PKIXCertPathValidator.validate(PKIXCertPathValidator.java:157)\n\tat java.base/sun.security.provider.certpath.PKIXCertPathValidator.engineValidate(PKIXCertPathValidator.java:83)\n\tat java.base/java.security.cert.CertPathValidator.validate(CertPathValidator.java:309)\n\tat java.base/sun.security.validator.PKIXValidator.doValidate(PKIXValidator.java:313)\n\t... 24 more",
+    "stdout_lines": [
+        "**************************************************************************",
+        "** This tool will be deprecated in the next major release of OpenSearch **",
+        "** https://github.com/opensearch-project/security/issues/1755           **",
+        "**************************************************************************",
+        "Security Admin v7",
+        "Will connect to 192.168.79.55:9200 ... done",
+        "ERR: An unexpected SSLHandshakeException occured: PKIX path validation failed: java.security.cert.CertPathValidatorException: Path does not chain with any of the trust anchors",
+        "See https://opensearch.org/docs/latest/clients/java-rest-high-level/ for troubleshooting.",
+        "Trace:",
+        "javax.net.ssl.SSLHandshakeException: PKIX path validation failed: java.security.cert.CertPathValidatorException: Path does not chain with any of the trust anchors",
+        "See https://opensearch.org/docs/latest/clients/java-rest-high-level/ for troubleshooting.",
+        "\tat org.opensearch.client.RestClient.extractAndWrapCause(RestClient.java:948)",
+        "\tat org.opensearch.client.RestClient.performRequest(RestClient.java:333)",
+        "\tat org.opensearch.client.RestClient.performRequest(RestClient.java:321)",
+        "\tat org.opensearch.security.tools.SecurityAdmin.execute(SecurityAdmin.java:572)",
+        "\tat org.opensearch.security.tools.SecurityAdmin.main(SecurityAdmin.java:162)",
+        "Caused by: javax.net.ssl.SSLHandshakeException: PKIX path validation failed: java.security.cert.CertPathValidatorException: Path does not chain with any of the trust anchors",
+        "\tat java.base/sun.security.ssl.Alert.createSSLException(Alert.java:130)",
+        "\tat java.base/sun.security.ssl.TransportContext.fatal(TransportContext.java:378)",
+        "\tat java.base/sun.security.ssl.TransportContext.fatal(TransportContext.java:321)",
+        "\tat java.base/sun.security.ssl.TransportContext.fatal(TransportContext.java:316)",
+        "\tat java.base/sun.security.ssl.CertificateMessage$T13CertificateConsumer.checkServerCerts(CertificateMessage.java:1318)",
+        "\tat java.base/sun.security.ssl.CertificateMessage$T13CertificateConsumer.onConsumeCertificate(CertificateMessage.java:1195)",
+        "\tat java.base/sun.security.ssl.CertificateMessage$T13CertificateConsumer.consume(CertificateMessage.java:1138)",
+        "\tat java.base/sun.security.ssl.SSLHandshake.consume(SSLHandshake.java:393)",
+        "\tat java.base/sun.security.ssl.HandshakeContext.dispatch(HandshakeContext.java:476)",
+        "\tat java.base/sun.security.ssl.SSLEngineImpl$DelegatedTask$DelegatedAction.run(SSLEngineImpl.java:1273)",
+        "\tat java.base/sun.security.ssl.SSLEngineImpl$DelegatedTask$DelegatedAction.run(SSLEngineImpl.java:1260)",
+        "\tat java.base/java.security.AccessController.doPrivileged(AccessController.java:714)",
+        "\tat java.base/sun.security.ssl.SSLEngineImpl$DelegatedTask.run(SSLEngineImpl.java:1205)",
+        "\tat org.apache.http.nio.reactor.ssl.SSLIOSession.doRunTask(SSLIOSession.java:289)",
+        "\tat org.apache.http.nio.reactor.ssl.SSLIOSession.doHandshake(SSLIOSession.java:357)",
+        "\tat org.apache.http.nio.reactor.ssl.SSLIOSession.isAppInputReady(SSLIOSession.java:545)",
+        "\tat org.apache.http.impl.nio.reactor.AbstractIODispatch.inputReady(AbstractIODispatch.java:120)",
+        "\tat org.apache.http.impl.nio.reactor.BaseIOReactor.readable(BaseIOReactor.java:162)",
+        "\tat org.apache.http.impl.nio.reactor.AbstractIOReactor.processEvent(AbstractIOReactor.java:337)",
+        "\tat org.apache.http.impl.nio.reactor.AbstractIOReactor.processEvents(AbstractIOReactor.java:315)",
+        "\tat org.apache.http.impl.nio.reactor.AbstractIOReactor.execute(AbstractIOReactor.java:276)",
+        "\tat org.apache.http.impl.nio.reactor.BaseIOReactor.execute(BaseIOReactor.java:104)",
+        "\tat org.apache.http.impl.nio.reactor.AbstractMultiworkerIOReactor$Worker.run(AbstractMultiworkerIOReactor.java:591)",
+        "\tat java.base/java.lang.Thread.run(Thread.java:1583)",
+        "Caused by: sun.security.validator.ValidatorException: PKIX path validation failed: java.security.cert.CertPathValidatorException: Path does not chain with any of the trust anchors",
+        "\tat java.base/sun.security.validator.PKIXValidator.doValidate(PKIXValidator.java:318)",
+        "\tat java.base/sun.security.validator.PKIXValidator.engineValidate(PKIXValidator.java:267)",
+        "\tat java.base/sun.security.validator.Validator.validate(Validator.java:256)",
+        "\tat java.base/sun.security.ssl.X509TrustManagerImpl.checkTrusted(X509TrustManagerImpl.java:284)",
+        "\tat java.base/sun.security.ssl.X509TrustManagerImpl.checkServerTrusted(X509TrustManagerImpl.java:144)",
+        "\tat java.base/sun.security.ssl.CertificateMessage$T13CertificateConsumer.checkServerCerts(CertificateMessage.java:1296)",
+        "\t... 19 more",
+        "Caused by: java.security.cert.CertPathValidatorException: Path does not chain with any of the trust anchors",
+        "\tat java.base/sun.security.provider.certpath.PKIXCertPathValidator.validate(PKIXCertPathValidator.java:157)",
+        "\tat java.base/sun.security.provider.certpath.PKIXCertPathValidator.engineValidate(PKIXCertPathValidator.java:83)",
+        "\tat java.base/java.security.cert.CertPathValidator.validate(CertPathValidator.java:309)",
+        "\tat java.base/sun.security.validator.PKIXValidator.doValidate(PKIXValidator.java:313)",
+        "\t... 24 more"
+    ]
+}
+<192.168.97.55> (0, b'\r\n\r\n{"changed": true, "stdout": "**************************************************************************\\n** This tool will be deprecated in the next major release of OpenSearch **\\n** https://github.com/opensearch-project/security/issues/1755           **\\n**************************************************************************\\nSecurity Admin v7\\nWill connect to 192.168.97.55:9200 ... done\\nConnected as \\"CN=admin,OU=Wazuh,O=Wazuh,L=California,C=US\\"\\nOpenSearch Version: 2.16.0\\nContacting opensearch cluster \'opensearch\' and wait for YELLOW clusterstate ...\\nClustername: wazuh-cluster\\nClusterstate: GREEN\\nNumber of nodes: 1\\nNumber of data nodes: 1\\n.opendistro_security index already exists, so we do not need to create one.\\nPopulate config from /etc/wazuh-indexer/opensearch-security/\\nWill update \'/config\' with /etc/wazuh-indexer/opensearch-security/config.yml \\n   SUCC: Configuration for \'config\' created or updated\\nWill update \'/roles\' with /etc/wazuh-indexer/opensearch-security/roles.yml \\n   SUCC: Configuration for \'roles\' created or updated\\nWill update \'/rolesmapping\' with /etc/wazuh-indexer/opensearch-security/roles_mapping.yml \\n   SUCC: Configuration for \'rolesmapping\' created or updated\\nWill update \'/internalusers\' with /etc/wazuh-indexer/opensearch-security/internal_users.yml \\n   SUCC: Configuration for \'internalusers\' created or updated\\nWill update \'/actiongroups\' with /etc/wazuh-indexer/opensearch-security/action_groups.yml \\n   SUCC: Configuration for \'actiongroups\' created or updated\\nWill update \'/tenants\' with /etc/wazuh-indexer/opensearch-security/tenants.yml \\n   SUCC: Configuration for \'tenants\' created or updated\\nWill update \'/nodesdn\' with /etc/wazuh-indexer/opensearch-security/nodes_dn.yml \\n   SUCC: Configuration for \'nodesdn\' created or updated\\nWill update \'/whitelist\' with /etc/wazuh-indexer/opensearch-security/whitelist.yml \\n   SUCC: Configuration for \'whitelist\' created or updated\\nWill update \'/audit\' with /etc/wazuh-indexer/opensearch-security/audit.yml \\n   SUCC: Configuration for \'audit\' created or updated\\nWill update \'/allowlist\' with /etc/wazuh-indexer/opensearch-security/allowlist.yml \\n   SUCC: Configuration for \'allowlist\' created or updated\\nSUCC: Expected 10 config types for node {\\"updated_config_types\\":[\\"allowlist\\",\\"tenants\\",\\"rolesmapping\\",\\"nodesdn\\",\\"audit\\",\\"roles\\",\\"whitelist\\",\\"actiongroups\\",\\"config\\",\\"internalusers\\"],\\"updated_config_size\\":10,\\"message\\":null} is 10 ([\\"allowlist\\",\\"tenants\\",\\"rolesmapping\\",\\"nodesdn\\",\\"audit\\",\\"roles\\",\\"whitelist\\",\\"actiongroups\\",\\"config\\",\\"internalusers\\"]) due to: null\\nDone with success", "stderr": "", "rc": 0, "cmd": ["/usr/share/wazuh-indexer/bin/indexer-security-init.sh"], "start": "2025-04-28 18:55:13.924420", "end": "2025-04-28 18:55:17.435312", "delta": "0:00:03.510892", "msg": "", "invocation": {"module_args": {"_raw_params": "/usr/share/wazuh-indexer/bin/indexer-security-init.sh", "_uses_shell": false, "expand_argument_vars": true, "stdin_add_newline": true, "strip_empty_ends": true, "argv": null, "chdir": null, "executable": null, "creates": null, "removes": null, "stdin": null}}}\r\n', b"OpenSSH_9.6p1 Ubuntu-3ubuntu13.9, OpenSSL 3.0.13 30 Jan 2024\r\ndebug1: Reading configuration data /etc/ssh/ssh_config\r\ndebug1: /etc/ssh/ssh_config line 19: include /etc/ssh/ssh_config.d/*.conf matched no files\r\ndebug1: /etc/ssh/ssh_config line 21: Applying options for *\r\ndebug2: resolve_canonicalize: hostname 192.168.97.55 is address\r\ndebug3: expanded UserKnownHostsFile '~/.ssh/known_hosts' -> '/root/.ssh/known_hosts'\r\ndebug3: expanded UserKnownHostsFile '~/.ssh/known_hosts2' -> '/root/.ssh/known_hosts2'\r\ndebug1: auto-mux: Trying existing master at '/root/.ansible/cp/e7d8b13108'\r\ndebug2: fd 3 setting O_NONBLOCK\r\ndebug2: mux_client_hello_exchange: master version 4\r\ndebug3: mux_client_forwards: request forwardings: 0 local, 0 remote\r\ndebug3: mux_client_request_session: entering\r\ndebug3: mux_client_request_alive: entering\r\ndebug3: mux_client_request_alive: done pid = 13639\r\ndebug3: mux_client_request_session: session request sent\r\ndebug1: mux_client_request_session: master session id: 2\r\ndebug3: mux_client_read_packet_timeout: read header failed: Broken pipe\r\ndebug2: Received exit status from master 0\r\nShared connection to 192.168.97.55 closed.\r\n")
+<192.168.97.55> ESTABLISH SSH CONNECTION FOR USER: wazuh
+<192.168.97.55> SSH: EXEC ssh -vvv -C -o ControlMaster=auto -o ControlPersist=60s -o KbdInteractiveAuthentication=no -o PreferredAuthentications=gssapi-with-mic,gssapi-keyex,hostbased,publickey -o PasswordAuthentication=no -o 'User="wazuh"' -o ConnectTimeout=10 -o 'ControlPath="/root/.ansible/cp/e7d8b13108"' 192.168.97.55 '/bin/sh -c '"'"'rm -f -r /home/wazuh/.ansible/tmp/ansible-tmp-1745841230.8453076-13903-21589684841612/ > /dev/null 2>&1 && sleep 0'"'"''
+<192.168.97.55> (0, b'', b"OpenSSH_9.6p1 Ubuntu-3ubuntu13.9, OpenSSL 3.0.13 30 Jan 2024\r\ndebug1: Reading configuration data /etc/ssh/ssh_config\r\ndebug1: /etc/ssh/ssh_config line 19: include /etc/ssh/ssh_config.d/*.conf matched no files\r\ndebug1: /etc/ssh/ssh_config line 21: Applying options for *\r\ndebug2: resolve_canonicalize: hostname 192.168.97.55 is address\r\ndebug3: expanded UserKnownHostsFile '~/.ssh/known_hosts' -> '/root/.ssh/known_hosts'\r\ndebug3: expanded UserKnownHostsFile '~/.ssh/known_hosts2' -> '/root/.ssh/known_hosts2'\r\ndebug1: auto-mux: Trying existing master at '/root/.ansible/cp/e7d8b13108'\r\ndebug2: fd 3 setting O_NONBLOCK\r\ndebug2: mux_client_hello_exchange: master version 4\r\ndebug3: mux_client_forwards: request forwardings: 0 local, 0 remote\r\ndebug3: mux_client_request_session: entering\r\ndebug3: mux_client_request_alive: entering\r\ndebug3: mux_client_request_alive: done pid = 13639\r\ndebug3: mux_client_request_session: session request sent\r\ndebug1: mux_client_request_session: master session id: 2\r\ndebug3: mux_client_read_packet_timeout: read header failed: Broken pipe\r\ndebug2: Received exit status from master 0\r\n")
+changed: [indexer_b_1] => {
+    "changed": true,
+    "cmd": [
+        "/usr/share/wazuh-indexer/bin/indexer-security-init.sh"
+    ],
+    "delta": "0:00:03.510892",
+    "end": "2025-04-28 18:55:17.435312",
+    "invocation": {
+        "module_args": {
+            "_raw_params": "/usr/share/wazuh-indexer/bin/indexer-security-init.sh",
+            "_uses_shell": false,
+            "argv": null,
+            "chdir": null,
+            "creates": null,
+            "executable": null,
+            "expand_argument_vars": true,
+            "removes": null,
+            "stdin": null,
+            "stdin_add_newline": true,
+            "strip_empty_ends": true
+        }
+    },
+    "msg": "",
+    "rc": 0,
+    "start": "2025-04-28 18:55:13.924420",
+    "stderr": "",
+    "stderr_lines": [],
+    "stdout": "**************************************************************************\n** This tool will be deprecated in the next major release of OpenSearch **\n** https://github.com/opensearch-project/security/issues/1755           **\n**************************************************************************\nSecurity Admin v7\nWill connect to 192.168.97.55:9200 ... done\nConnected as \"CN=admin,OU=Wazuh,O=Wazuh,L=California,C=US\"\nOpenSearch Version: 2.16.0\nContacting opensearch cluster 'opensearch' and wait for YELLOW clusterstate ...\nClustername: wazuh-cluster\nClusterstate: GREEN\nNumber of nodes: 1\nNumber of data nodes: 1\n.opendistro_security index already exists, so we do not need to create one.\nPopulate config from /etc/wazuh-indexer/opensearch-security/\nWill update '/config' with /etc/wazuh-indexer/opensearch-security/config.yml \n   SUCC: Configuration for 'config' created or updated\nWill update '/roles' with /etc/wazuh-indexer/opensearch-security/roles.yml \n   SUCC: Configuration for 'roles' created or updated\nWill update '/rolesmapping' with /etc/wazuh-indexer/opensearch-security/roles_mapping.yml \n   SUCC: Configuration for 'rolesmapping' created or updated\nWill update '/internalusers' with /etc/wazuh-indexer/opensearch-security/internal_users.yml \n   SUCC: Configuration for 'internalusers' created or updated\nWill update '/actiongroups' with /etc/wazuh-indexer/opensearch-security/action_groups.yml \n   SUCC: Configuration for 'actiongroups' created or updated\nWill update '/tenants' with /etc/wazuh-indexer/opensearch-security/tenants.yml \n   SUCC: Configuration for 'tenants' created or updated\nWill update '/nodesdn' with /etc/wazuh-indexer/opensearch-security/nodes_dn.yml \n   SUCC: Configuration for 'nodesdn' created or updated\nWill update '/whitelist' with /etc/wazuh-indexer/opensearch-security/whitelist.yml \n   SUCC: Configuration for 'whitelist' created or updated\nWill update '/audit' with /etc/wazuh-indexer/opensearch-security/audit.yml \n   SUCC: Configuration for 'audit' created or updated\nWill update '/allowlist' with /etc/wazuh-indexer/opensearch-security/allowlist.yml \n   SUCC: Configuration for 'allowlist' created or updated\nSUCC: Expected 10 config types for node {\"updated_config_types\":[\"allowlist\",\"tenants\",\"rolesmapping\",\"nodesdn\",\"audit\",\"roles\",\"whitelist\",\"actiongroups\",\"config\",\"internalusers\"],\"updated_config_size\":10,\"message\":null} is 10 ([\"allowlist\",\"tenants\",\"rolesmapping\",\"nodesdn\",\"audit\",\"roles\",\"whitelist\",\"actiongroups\",\"config\",\"internalusers\"]) due to: null\nDone with success",
+    "stdout_lines": [
+        "**************************************************************************",
+        "** This tool will be deprecated in the next major release of OpenSearch **",
+        "** https://github.com/opensearch-project/security/issues/1755           **",
+        "**************************************************************************",
+        "Security Admin v7",
+        "Will connect to 192.168.97.55:9200 ... done",
+        "Connected as \"CN=admin,OU=Wazuh,O=Wazuh,L=California,C=US\"",
+        "OpenSearch Version: 2.16.0",
+        "Contacting opensearch cluster 'opensearch' and wait for YELLOW clusterstate ...",
+        "Clustername: wazuh-cluster",
+        "Clusterstate: GREEN",
+        "Number of nodes: 1",
+        "Number of data nodes: 1",
+        ".opendistro_security index already exists, so we do not need to create one.",
+        "Populate config from /etc/wazuh-indexer/opensearch-security/",
+        "Will update '/config' with /etc/wazuh-indexer/opensearch-security/config.yml ",
+        "   SUCC: Configuration for 'config' created or updated",
+        "Will update '/roles' with /etc/wazuh-indexer/opensearch-security/roles.yml ",
+        "   SUCC: Configuration for 'roles' created or updated",
+        "Will update '/rolesmapping' with /etc/wazuh-indexer/opensearch-security/roles_mapping.yml ",
+        "   SUCC: Configuration for 'rolesmapping' created or updated",
+        "Will update '/internalusers' with /etc/wazuh-indexer/opensearch-security/internal_users.yml ",
+        "   SUCC: Configuration for 'internalusers' created or updated",
+        "Will update '/actiongroups' with /etc/wazuh-indexer/opensearch-security/action_groups.yml ",
+        "   SUCC: Configuration for 'actiongroups' created or updated",
+        "Will update '/tenants' with /etc/wazuh-indexer/opensearch-security/tenants.yml ",
+        "   SUCC: Configuration for 'tenants' created or updated",
+        "Will update '/nodesdn' with /etc/wazuh-indexer/opensearch-security/nodes_dn.yml ",
+        "   SUCC: Configuration for 'nodesdn' created or updated",
+        "Will update '/whitelist' with /etc/wazuh-indexer/opensearch-security/whitelist.yml ",
+        "   SUCC: Configuration for 'whitelist' created or updated",
+        "Will update '/audit' with /etc/wazuh-indexer/opensearch-security/audit.yml ",
+        "   SUCC: Configuration for 'audit' created or updated",
+        "Will update '/allowlist' with /etc/wazuh-indexer/opensearch-security/allowlist.yml ",
+        "   SUCC: Configuration for 'allowlist' created or updated",
+        "SUCC: Expected 10 config types for node {\"updated_config_types\":[\"allowlist\",\"tenants\",\"rolesmapping\",\"nodesdn\",\"audit\",\"roles\",\"whitelist\",\"actiongroups\",\"config\",\"internalusers\"],\"updated_config_size\":10,\"message\":null} is 10 ([\"allowlist\",\"tenants\",\"rolesmapping\",\"nodesdn\",\"audit\",\"roles\",\"whitelist\",\"actiongroups\",\"config\",\"internalusers\"]) due to: null",
+        "Done with success"
+    ]
+}
+
+PLAY RECAP *****************************************************************************************************************************************************************************
+indexer_a_1                : ok=15   changed=9    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
+indexer_b_1                : ok=16   changed=10   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+

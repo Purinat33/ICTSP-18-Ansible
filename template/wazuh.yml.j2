@@ -1,0 +1,36 @@
+---
+
+# =========================== App configuration file ===========================
+
+# Enable IP selector UI toggle
+ip.selector: true
+
+# ------------------------------ API connections -------------------------------
+hosts:
+{% for group in groups if group.startswith('site_') and group.endswith('_server') %}
+{%   set site_name = group | regex_search('site_(.*)_server') %}
+{%   for host in groups[group] %}
+{%     if hostvars[host].master | default('false') == 'true' %}
+  - SITE {{ site_name | upper }}:
+      url: https://{{ hostvars[host]['ansible_host'] }}
+      port: 55000
+      username: wazuh-wui
+      password: wazuh-wui
+      run_as: true
+{%     endif %}
+{%   endfor %}
+{% endfor %}
+
+# DEBUG: Rendering for {{ inventory_hostname }}
+# DEBUG: group_names = {{ group_names }}
+# DEBUG: Detected site server groups: {{ groups.keys() | select('match', '^site_.*_server$') | list }}
+# DEBUG: Master servers:
+# {% for group in groups if group.startswith('site_') and group.endswith('_server') %}
+#   {% set site_name = group | regex_search('site_(.*)_server') %}
+#   {% for host in groups[group] %}
+#     {% if hostvars[host].master | default('false') == 'true' %}
+#       - {{ host }} (site-{{ site_name }}) -> {{ hostvars[host]['ansible_host'] }}
+#     {% endif %}
+#   {% endfor %}
+# {% endfor %}
+

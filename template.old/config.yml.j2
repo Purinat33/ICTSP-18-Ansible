@@ -1,0 +1,14 @@
+nodes:
+{% if 'indexer' in group_names %}
+  indexer:
+    - name: {{ inventory_hostname }}
+      ip: {{ ansible_host }}
+{% elif 'server' in group_names %}
+  server:
+    - name: {{ inventory_hostname }}
+      ip: {{ ansible_host }}
+{% elif 'dashboard' in group_names %}
+  dashboard:
+    - name: {{ inventory_hostname }}
+      ip: {{ ansible_host }}
+{% endif %}

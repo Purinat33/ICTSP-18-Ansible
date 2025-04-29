@@ -1,0 +1,24 @@
+---
+- name: Create Docker networks for Molecule scenario
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Create site_a subnet
+      community.docker.docker_network:
+        name: site_a_net
+        ipam_config:
+          - subnet: 192.168.133.0/24
+
+    - name: Create site_b subnet
+      community.docker.docker_network:
+        name: site_b_net
+        ipam_config:
+          - subnet: 192.168.234.0/24
+
+    - name: Create dashboard subnet
+      community.docker.docker_network:
+        name: mgmt_net
+        ipam_config:
+          - subnet: 192.168.56.0/24
+

@@ -1,0 +1,104 @@
+driver:
+  name: docker
+
+platforms:
+  - name: router
+    image: debian:bullseye
+    privileged: true
+    networks:
+      - name: site_a_net
+        ipv4_address: 10.10.10.2
+#        ipv4_subnet: 10.10.10.0/24
+      - name: site_b_net
+        ipv4_address: 10.20.20.2
+#        ipv4_subnet: 10.20.20.0/24
+      - name: mgmt_net
+        ipv4_address: 10.30.30.2
+#        ipv4_subnet: 10.30.30.0/24
+    command: /bin/bash -c "echo 1 > /proc/sys/net/ipv4/ip_forward && while true; do sleep 30; done"
+
+  - name: indexer_a_1
+    image: ubuntu:22.04
+    networks:
+      - name: site_a_net
+        ipv4_address: 10.10.10.21
+#        ipv4_subnet: 10.10.10.0/24
+    command: /bin/bash -c "while true; do sleep 30; done"
+    privileged: true
+    user: root
+
+  - name: server_a_1
+    image: ubuntu:22.04
+    networks:
+      - name: site_a_net
+        ipv4_address: 10.10.10.22
+#        ipv4_subnet: 10.10.10.0/24
+    command: /bin/bash -c "while true; do sleep 30; done"
+    privileged: true
+    user: root
+
+  - name: agent_a_1
+    image: ubuntu:22.04
+    networks:
+      - name: site_a_net
+        ipv4_address: 10.10.10.23
+ #       ipv4_subnet: 10.10.10.0/24
+    command: /bin/bash -c "while true; do sleep 30; done"
+    privileged: true
+    user: root
+
+  - name: indexer_b_1
+    image: ubuntu:22.04
+    networks:
+      - name: site_b_net
+        ipv4_address: 10.20.20.21
+  #      ipv4_subnet: 10.20.20.0/24
+    command: /bin/bash -c "while true; do sleep 30; done"
+    privileged: true
+    user: root
+
+  - name: server_b_1
+    image: ubuntu:22.04
+    networks:
+      - name: site_b_net
+        ipv4_address: 10.20.20.22
+   #     ipv4_subnet: 10.20.20.0/24
+    command: /bin/bash -c "while true; do sleep 30; done"
+    privileged: true
+    user: root
+
+  - name: dashboard_1
+    image: ubuntu:22.04
+    networks:
+      - name: mgmt_net
+        ipv4_address: 10.30.30.112
+    #    ipv4_subnet: 10.30.30.0/24
+    command: /bin/bash -c "while true; do sleep 30; done"
+    privileged: true
+    user: root
+
+#provisioner:
+#  name: ansible
+#  inventory:
+#    host_vars: {}
+#    group_vars: {}
+#  playbooks:
+#    converge: playbooks/main.yml
+#  config_options:
+#    defaults:
+#      remote_tmp: /tmp/ansible-tmp
+
+provisioner:
+  name: ansible
+  inventory:
+    links:
+      hosts: inventory/inventory.ini  # path relative to this molecule.yml
+  playbooks:
+    converge: playbooks/main.yml
+  config_options:
+    defaults:
+      vault_password_file: /home/wazuh/distributed/.vault_pwd.txt
+      remote_tmp: /tmp
+
+verifier:
+  name: ansible

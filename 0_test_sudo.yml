@@ -1,0 +1,15 @@
+---
+- name: Verify sudo access
+  hosts: all
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Check current user
+      command: whoami
+      register: result
+
+    - name: Display current user
+      debug:
+        msg: "Current user is {{ result.stdout }}"
+

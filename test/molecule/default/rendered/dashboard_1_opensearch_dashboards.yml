@@ -1,0 +1,27 @@
+# Wazuh Dashboard Configuration
+
+server.host: "192.168.56.112"
+server.port: 443
+
+# List of all indexers in one-line array with quotes
+opensearch.hosts: ["https://192.168.133.21:9200", "https://192.168.234.5:9200", "https://192.168.234.100:9200", "https://192.168.1.2:9200"]
+
+# DEBUG: Rendering for dashboard_1
+# DEBUG: group_names = ['dashboard', 'site_dashboard', 'wazuh']
+# DEBUG: dashboard IP = 192.168.56.112
+# DEBUG: indexer IPs = ['192.168.133.21', '192.168.234.5', '192.168.234.100', '192.168.1.2']
+# DEBUG: opensearch.hosts = [https://192.168.133.21:9200, https://192.168.234.5:9200, https://192.168.234.100:9200, https://192.168.1.2:9200]
+
+
+opensearch.ssl.verificationMode: certificate
+opensearch.requestHeadersAllowlist: ["securitytenant", "Authorization"]
+
+opensearch_security.multitenancy.enabled: false
+opensearch_security.readonly_mode.roles: ["kibana_read_only"]
+
+server.ssl.enabled: true
+server.ssl.key: "/etc/wazuh-dashboard/certs/dashboard-key.pem"
+server.ssl.certificate: "/etc/wazuh-dashboard/certs/dashboard.pem"
+opensearch.ssl.certificateAuthorities: ["/etc/wazuh-dashboard/certs/root-ca.pem"]
+
+uiSettings.overrides.defaultRoute: /app/wz-home

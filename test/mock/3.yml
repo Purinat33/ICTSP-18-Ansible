@@ -1,0 +1,90 @@
+---
+- name: MOCK - Step 3 Install and configure Wazuh Indexer with certificates
+  hosts: indexer
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Install wazuh-indexer
+      debug:
+        msg: "MOCK: Would install wazuh-indexer via apt"
+
+    - name: MOCK - Download Wazuh certificate tool
+      debug:
+        msg: "MOCK: Would download wazuh-certs-tool.sh"
+
+    - name: MOCK - Generate indexer config.yml
+      debug:
+        msg: "MOCK: Would render template/config.yml.j2 to /home/{{ ansible_user }}/config.yml"
+
+    - name: MOCK - Remove existing wazuh-certificates directory
+      debug:
+        msg: "MOCK: Would delete /home/{{ ansible_user }}/wazuh-certificates if exists"
+
+    - name: MOCK - Run certificate generation
+      debug:
+        msg: "MOCK: Would run wazuh-certs-tool.sh with root-ca.pem and root-ca.key"
+
+    - name: MOCK - Archive the generated certificates
+      debug:
+        msg: "MOCK: Would tar wazuh-certificates.tar"
+
+- name: MOCK - Step 4 Modify opensearch.yml on indexers
+  hosts: indexer
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Generate opensearch.yml
+      debug:
+        msg: "MOCK: Would render opensearch.yml.j2 to /etc/wazuh-indexer/opensearch.yml"
+
+- name: MOCK - Step 5 Move and rename cert files
+  hosts: indexer
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Remove old certs directory
+      debug:
+        msg: "MOCK: Would delete /etc/wazuh-indexer/certs"
+
+    - name: MOCK - Create new certs directory
+      debug:
+        msg: "MOCK: Would create /etc/wazuh-indexer/certs owned by wazuh-indexer"
+
+    - name: MOCK - Extract certs from tarball
+      debug:
+        msg: "MOCK: Would unarchive wazuh-certificates.tar to /etc/wazuh-indexer/certs"
+
+    - name: MOCK - Move pem to indexer.pem
+      debug:
+        msg: "MOCK: Would move {{ inventory_hostname }}.pem to indexer.pem"
+
+    - name: MOCK - Move key.pem to indexer-key.pem
+      debug:
+        msg: "MOCK: Would move {{ inventory_hostname }}-key.pem to indexer-key.pem"
+
+    - name: MOCK - Set permissions on certs
+      debug:
+        msg: "MOCK: Would chmod 0500 on /etc/wazuh-indexer/certs recursively"
+
+    - name: MOCK - Set ownership
+      debug:
+        msg: "MOCK: Would chown wazuh-indexer:wazuh-indexer on certs recursively"
+
+    - name: MOCK - Reload systemd
+      debug:
+        msg: "MOCK: Would run systemctl daemon-reexec"
+
+    - name: MOCK - Enable Wazuh Indexer service
+      debug:
+        msg: "MOCK: Would enable wazuh-indexer systemd service"
+
+    - name: MOCK - Start Wazuh Indexer service
+      debug:
+        msg: "MOCK: Would start wazuh-indexer systemd service"
+
+    - name: MOCK - Initialize Wazuh indexer security
+      debug:
+        msg: "MOCK: Would run indexer-security-init.sh"

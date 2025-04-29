@@ -1,0 +1,28 @@
+---
+# RUN THIS AFTER THE IP HAVE CHANGED TO STATIC
+#- name: Install Dependencies
+#  import_playbook: 1_install_dep.yml
+
+- name: Deploy Certificates
+  import_playbook: 2_certs_deployment.yml
+
+- name: Configure Indexer
+  import_playbook: 3_indexer.yml
+
+- name: Setup Filebeat
+  import_playbook: 4_filebeat.yml
+
+- name: Deploy Dashboard
+  import_playbook: 5_dashboard.yml
+
+- name: Install agents
+  import_playbook: 6_agents.yml
+
+- name: Server Cluster Configuration
+  import_playbook: 7_cluster.yml
+
+- name: Load Balancer
+  import_playbook: 8_LB.yml
+
+- name: Print Summary to File
+  import_playbook: 10.yml

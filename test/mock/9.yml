@@ -1,0 +1,84 @@
+---
+- name: Book 9 - Final Summary of Wazuh Deployment
+  hosts: localhost
+  gather_facts: false
+  tasks:
+
+    - name: Extract list of site names from group names
+      set_fact:
+        all_sites: >-
+          {{ groups.keys()
+             | select('match', '^site_.*_server$')
+             | map('regex_replace', '^site_(.*)_server$', '\1')
+             | list }}
+
+    - name: Print deployment summary per site
+      debug:
+        msg: |
+          {% for site in all_sites %}
+          --- SITE {{ site.upper() }} ---
+          Servers       : {{ groups['site_' ~ site ~ '_server'] | length }}
+          Indexers      : {{ (groups['site_' ~ site ~ '_indexer'] | default([])) | length }}
+          Agents        : {{ (groups['site_' ~ site ~ '_agent'] | default([])) | length }}
+          LoadBalancers : {{ (groups['site_' ~ site ~ '_loadbalancer'] | default([])) | length }}
+
+          Server Cluster for Site-{{ site.upper() }}:
+          {% for host in groups['site_' ~ site ~ '_server'] %}
+            - {{ host }}
+              IP       : {{ hostvars[host]['ansible_host'] }}
+              Node Name: {{ host }}
+              Role     : {{ 'MASTER' if hostvars[host].get('master', 'false') | lower == 'true' else 'WORKER' }}
+          {% endfor %}
+
+          {% endfor %}
+
+    - name: Ensure summary output directory exists
+      file:
+        path: "../molecule/default/summary"
+        state: directory
+        mode: '0755'
+
+
+    - name: Write summary to file
+      copy:
+        content: |
+          {% for site in all_sites %}
+          ## SITE {{ site.upper() }}
+
+          **Servers**: {{ groups['site_' ~ site ~ '_server'] | length }}
+          **Indexers**: {{ (groups['site_' ~ site ~ '_indexer'] | default([])) | length }}
+          **Agents**: {{ (groups['site_' ~ site ~ '_agent'] | default([])) | length }}
+          **LoadBalancers**: {{ (groups['site_' ~ site ~ '_loadbalancer'] | default([])) | length }}
+
+          ### Server Cluster:
+          {% for host in groups['site_' ~ site ~ '_server'] %}
+          - **{{ host }}**
+            - IP: {{ hostvars[host]['ansible_host'] }}
+            - Role: {{ 'MASTER' if hostvars[host].get('master', 'false') | lower == 'true' else 'WORKER'  }}
+          {% endfor %}
+
+          ### Indexers
+          {% for host in groups['site_' ~ site ~ '_indexer'] | default([]) %}
+          - **{{ host }}**
+            - IP: {{ hostvars[host]['ansible_host'] }}
+          {% endfor %}
+
+          ### Agents
+          {% for host in groups['site_' ~ site ~ '_agent'] | default([]) %}
+          - **{{ host }}**
+            - IP: {{ hostvars[host]['ansible_host'] }}
+          {% endfor %}
+
+          ### Load Balancers
+          {% for host in groups['site_' ~ site ~ '_loadbalancer'] | default([]) %}
+          - **{{ host }}**
+            - IP: {{ hostvars[host]['ansible_host'] }}
+          {% endfor %}
+
+          {% endfor %}
+
+          ## Global Load Balancer (`opensearch.hosts`)
+          [{% for host in groups['indexer'] %}
+          "{{ 'https://' ~ hostvars[host]['ansible_host'] ~ ':9200' }}"{% if not loop.last %}, {% endif %}
+          {% endfor %}]
+        dest: "../molecule/default/summary/site-summary.md"

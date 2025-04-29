@@ -1,0 +1,124 @@
+---
+- name: Render filebeat config for all servers
+  hosts: server
+  gather_facts: false
+  vars:
+    output_path: "./rendered/{{ inventory_hostname }}_filebeat.yml"
+  tasks:
+    - name: Render filebeat.yml for each server
+      template:
+        src: templates/filebeat.yml.j2
+        dest: "{{ output_path }}"
+#    - debug:
+#        msg: "{{ indexer_hosts }}"
+
+- name: Render opensearch.yml for all indexers
+  hosts: indexer
+  gather_facts: false
+  tasks:
+    - name: Render opensearch.yml
+      template:
+        src: templates/opensearch.yml.j2
+        dest: "./rendered/{{ inventory_hostname }}_opensearch.yml"
+
+- name: Render wazuh-template.json for all servers
+  hosts: server
+  tasks:
+    - name: Show inventory hostname and groups
+      debug:
+        msg:
+          - "inventory_hostname: {{ inventory_hostname }}"
+          - "group_names: {{ group_names }}"
+
+    - name: Extract site info from group_names
+      set_fact:
+        site_group: >-
+          {{ group_names | select('match', '^site_.*_server$') | list | first | default('') }}
+        site_id: >-
+          {{ (group_names | select('match', '^site_.*_server$') | list | first | default('') ) | regex_replace('^site_(.*)_server$', 'site-\1') }}
+        site_indexer_group: >-
+          {{ (group_names | select('match', '^site_.*_server$') | list | first | default('') ) | regex_replace('^site_(.*)_server$', 'site-\1-indexer') }}
+        site_name: >-
+          {{ (group_names | select('match', '^site_.*_server$') | list | first | default('') ) | regex_replace('^site_(.*)_server$', 'site-\1') }}
+
+    - name: Debug site values
+      debug:
+        msg:
+          - "site_group: {{ site_group }}"
+          - "site_id: {{ site_id }}"
+          - "site_indexer_group: {{ site_indexer_group }}"
+    - name: Render wazuh-template.json.j2
+      template:
+        src: templates/wazuh-template.json.j2
+        dest: "./rendered/{{ inventory_hostname }}_wazuh-template.json"
+
+
+- name: Render manifest.yml for all servers
+  hosts: server
+  gather_facts: false
+  tasks:
+    - name: Render manifest.yml
+      template:
+        src: templates/manifest.yml.j2
+        dest: "./rendered/{{ inventory_hostname }}_manifest.yml"
+
+
+- name: Render nginx_wazuh.conf for all load balancers
+  hosts: loadbalancer
+  gather_facts: false
+  tasks:
+    - name: Render nginx_wazuh.conf.j2
+      template:
+        src: templates/nginx_wazuh.conf.j2
+        dest: "./rendered/{{ inventory_hostname }}_nginx_wazuh.conf"
+
+
+- name: Render config.yml for all nodes
+  hosts: wazuh:!agent
+  gather_facts: false
+  tasks:
+    - name: Render config.yml.j2
+      template:
+        src: templates/config.yml.j2
+        dest: "./rendered/{{ inventory_hostname }}_config.yml"
+
+
+- name: Render opensearch_dashboards.yml for dashboard
+  hosts: dashboard
+  gather_facts: false
+  tasks:
+    - name: Render opensearch_dashboards.yml.j2
+      template:
+        src: templates/opensearch_dashboards.yml.j2
+        dest: "./rendered/{{ inventory_hostname }}_opensearch_dashboards.yml"
+
+
+- name: Render wazuh.yml for dashboard node
+  hosts: dashboard
+  gather_facts: false
+  tasks:
+    - name: Render wazuh.yml
+      template:
+        src: templates/wazuh.yml.j2
+        dest: "./rendered/{{ inventory_hostname }}_wazuh.yml"
+
+- name: Render ossec.conf for agents
+  hosts: agent
+  gather_facts: false
+  tasks:
+    - name: Render agent ossec.conf
+      template:
+        src: templates/agents/ossec.conf.j2
+        dest: "./rendered/{{ inventory_hostname }}_ossec.conf"
+
+- name: Render ossec.conf for all Wazuh servers
+  hosts: server
+  gather_facts: false
+  tasks:
+    - name: Render server ossec.conf
+      template:
+        src: templates/server/ossec.conf.j2
+        dest: "./rendered/{{ inventory_hostname }}_ossec.conf"
+
+- name: Converge with mock main playbook
+  import_playbook: ../../mock/mock.yml

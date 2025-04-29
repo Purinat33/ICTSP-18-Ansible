@@ -1,0 +1,202 @@
+---
+- name: Step 1 Install Wazuh server and Filebeat
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Install wazuh-manager and filebeat
+      apt:
+        name:
+          - wazuh-manager
+          - filebeat
+        state: present
+        update_cache: yes
+
+    - name: Download wazuh-certs-tool.sh
+      get_url:
+        url: https://packages.wazuh.com/4.11/wazuh-certs-tool.sh
+        dest: /home/{{ ansible_user }}/wazuh-certs-tool.sh
+        mode: '0755'
+
+    - name: Generate config.yml
+      template:
+        src: template/config.yml.j2
+        dest: /home/{{ ansible_user }}/config.yml
+        mode: '0644'
+
+    - name: Remove existing wazuh-certificates directory if present
+      file:
+        path: /home/{{ ansible_user }}/wazuh-certificates
+        state: absent
+
+    - name: Run certificate generation with received root-ca.*
+      command: bash /home/{{ ansible_user }}/wazuh-certs-tool.sh -A /home/{{ ansible_user }}/certs/root-ca.pem /home/{{ ansible_user }}/certs/root-ca.key
+      args:
+        chdir: /home/{{ ansible_user }}
+
+    - name: Archive the generated certificates
+      command: tar -cvf wazuh-certificates.tar -C ./wazuh-certificates/ .
+      args:
+        chdir: /home/{{ ansible_user }}
+
+- name: Step 2 Create Filebeat keystore before using it
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Create filebeat keystore in default path
+      command: filebeat keystore create --force
+      environment:
+        BEAT_PATH_HOME: /var/lib/filebeat
+
+    - name: Add username to keystore
+      command: echo admin | filebeat keystore add username --stdin --force
+      environment:
+        BEAT_PATH_HOME: /var/lib/filebeat
+
+    - name: Add password to keystore
+      command: echo admin | filebeat keystore add password --stdin --force
+      environment:
+        BEAT_PATH_HOME: /var/lib/filebeat
+
+- name: Step 3 Deploy filebeat.yml and related templates
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Show inventory hostname and groups
+      debug:
+        msg:
+          - "inventory_hostname: {{ inventory_hostname }}"
+          - "group_names: {{ group_names }}"
+
+    - name: Extract site info from group_names
+      set_fact:
+        site_group: >-
+          {{ group_names | select('match', '^site_.*_server$') | list | first | default('') }}
+        site_id: >-
+          {{ (group_names | select('match', '^site_.*_server$') | list | first | default('') ) | regex_replace('^site_(.*)_server$', 'site-\1') }}
+        site_indexer_group: >-
+          {{ (group_names | select('match', '^site_.*_server$') | list | first | default('') ) | regex_replace('^site_(.*)_server$', 'site-\1-indexer') }}
+        site_name: >-
+          {{ (group_names | select('match', '^site_.*_server$') | list | first | default('') ) | regex_replace('^site_(.*)_server$', 'site-\1') }}
+
+    - name: Debug site values
+      debug:
+        msg:
+          - "site_group: {{ site_group }}"
+          - "site_id: {{ site_id }}"
+          - "site_indexer_group: {{ site_indexer_group }}"
+
+    - name: Generate filebeat.yml
+      template:
+        src: template/filebeat.yml.j2
+        dest: /etc/filebeat/filebeat.yml
+        mode: '0644'
+
+#    - name: Download wazuh-template.json
+#      get_url:
+#        url: https://raw.githubusercontent.com/wazuh/wazuh/v4.11.2/extensions/elasticsearch/7.x/wazuh-template.json
+#        dest: /etc/filebeat/wazuh-template.json
+#        mode: '0644'
+
+#    - name: Replace index patterns in wazuh-template.json
+#      replace:
+#        path: /etc/filebeat/wazuh-template.json
+#        regexp: 'wazuh-alerts-4\\.x-\\*'
+#        replace: '{{ site_name }}-alerts-*'
+
+#    - name: Replace archive patterns in wazuh-template.json
+#      replace:
+#        path: /etc/filebeat/wazuh-template.json
+#        regexp: 'wazuh-archives-4\\.x-\\*'
+#        replace: '{{ site_name }}-archives-*'
+
+    - name: Generate wazuh-template.json with templated site pattern
+      template:
+        src: template/wazuh-template.json.j2
+        dest: /etc/filebeat/wazuh-template.json
+        mode: '0644'
+
+    - name: Download and extract wazuh Filebeat module
+      shell: curl -s https://packages.wazuh.com/4.x/filebeat/wazuh-filebeat-0.3.tar.gz | tar -xvz -C /usr/share/filebeat/module
+
+    - name: Generate manifest.yml from template
+      template:
+        src: template/manifest.yml.j2
+        dest: /usr/share/filebeat/module/wazuh/alerts/manifest.yml
+        mode: '0644'
+
+- name: Step 4 Copy and set certs
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Remove existing filebeat certs
+      file:
+        path: /etc/filebeat/certs
+        state: absent
+
+    - name: Create certs directory
+      file:
+        path: /etc/filebeat/certs
+        state: directory
+        mode: '0500'
+
+    - name: Extract certs from tar
+      unarchive:
+        src: /home/{{ ansible_user }}/wazuh-certificates.tar
+        dest: /etc/filebeat/certs
+        remote_src: yes
+
+    - name: Move pem to filebeat.pem
+      command: mv -n /etc/filebeat/certs/{{ inventory_hostname }}.pem /etc/filebeat/certs/filebeat.pem
+
+    - name: Move key pem to filebeat-key.pem
+      command: mv -n /etc/filebeat/certs/{{ inventory_hostname }}-key.pem /etc/filebeat/certs/filebeat-key.pem
+
+    - name: Set permissions
+      file:
+        path: /etc/filebeat/certs
+        mode: '0500'
+        recurse: yes
+
+    - name: Set ownership
+      file:
+        path: /etc/filebeat/certs
+        owner: root
+        group: root
+        recurse: yes
+
+- name: Step 5 Enable and start filebeat
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Reload systemd
+      command: systemctl daemon-reexec
+
+    - name: Enable filebeat
+      systemd:
+        name: filebeat
+        enabled: yes
+
+    - name: Start filebeat
+      systemd:
+        name: filebeat
+        state: restarted
+
+    - name: Enable Wazuh Manager
+      systemd:
+        name: wazuh-manager
+        enabled: yes
+
+    - name: Start Wazuh Manager
+      systemd:
+        name: wazuh-manager
+        state: restarted

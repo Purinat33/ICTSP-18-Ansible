@@ -1,0 +1,20 @@
+{% set site_server_group = group_names | select('match', '^site_.*_server$') | list | first | default('site_unknown_server') %}
+{% set site_name = site_server_group | regex_replace('^site_(.*)_server$', 'site-\\1') %}
+# DEBUG: Rendering for {{ inventory_hostname }}
+# DEBUG: group_names = {{ group_names }}
+# DEBUG: site_server_group = {{ site_server_group }}
+# DEBUG: site_name = {{ site_name }}
+# DEBUG: index_prefix = {{ site_name }}-alerts-
+
+module_version: 0.1
+
+var:
+  - name: paths
+    default:
+      - /var/ossec/logs/alerts/alerts.json
+  - name: index_prefix
+    default: {{ site_name }}-alerts-
+
+input: config/alerts.yml
+
+ingest_pipeline: ingest/pipeline.json

@@ -1,0 +1,13 @@
+---
+- name: Book 7 - Configure Wazuh Server Clustering (Template handles logic)
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+
+  tasks:
+    - name: Deploy ossec.conf for all servers (template handles logic)
+      template:
+        src: template/server/ossec.conf.j2
+        dest: /var/ossec/etc/ossec.conf
+        mode: '0644'

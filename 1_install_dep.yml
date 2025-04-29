@@ -1,0 +1,80 @@
+---
+- name: Install system dependencies on all nodes
+  hosts: all
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Ensure /etc/resolv.conf exists
+      ansible.builtin.file:
+        path: /etc/resolv.conf
+        state: touch
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Set DNS nameservers in /etc/resolv.conf
+      ansible.builtin.blockinfile:
+        path: /etc/resolv.conf
+        block: |
+          nameserver 8.8.8.8
+          nameserver 8.8.4.4
+          options edns0 trust-ad
+          search .
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+# This part will be run in Mahidol
+    - name: Ensure /etc/apt/apt.conf exists with proxy config
+      ansible.builtin.copy:
+        dest: /etc/apt/apt.conf
+        content: 'Acquire::http::proxy "http://muproxy-basic.mahidol:8080";'
+        owner: root
+        group: root
+        mode: '0644'
+
+
+    - name: Install general packages
+      apt:
+        name:
+          - openssh-server
+          - openssh-client
+          - build-essential
+          - dkms
+          - debhelper
+          - tar
+          - curl
+          - libcap2-bin
+        update_cache: yes
+
+- name: Setup Wazuh repository and shared requirements
+  hosts: wazuh
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Install additional system packages for Wazuh nodes
+      apt:
+        name:
+          - debconf
+          - adduser
+          - procps
+          - gnupg
+          - apt-transport-https
+        state: present
+        update_cache: yes
+
+    - name: Add Wazuh GPG key
+      shell: |
+        curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | gpg --no-default-keyring --keyring gnupg-ring:/usr/share/keyrings/wazuh.gpg --import
+        chmod 644 /usr/share/keyrings/wazuh.gpg
+      args:
+        creates: /usr/share/keyrings/wazuh.gpg
+
+    - name: Add Wazuh APT repository
+      copy:
+        dest: /etc/apt/sources.list.d/wazuh.list
+        content: |
+          deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes

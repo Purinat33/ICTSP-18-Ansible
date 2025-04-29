@@ -1,0 +1,34 @@
+stream {
+    upstream master {
+        {% set site_prefix = group_names | select('match', '^site_.*_loadbalancer$') | list | first | regex_replace('_loadbalancer$', '') %}
+        {% set server_group = site_prefix + '_server' %}
+        {% for host in groups[server_group] %}
+            {% if hostvars[host].master is defined and hostvars[host].master == 'true' %}
+        server {{ hostvars[host]['ansible_host'] }}:1515;
+            {% endif %}
+        {% endfor %}
+    }
+
+    upstream mycluster {
+        {% for host in groups[server_group] %}
+        server {{ hostvars[host]['ansible_host'] }}:1514;
+        {% endfor %}
+    }
+
+    server {
+        listen 1515;
+        proxy_pass master;
+    }
+
+    server {
+        listen 1514;
+        proxy_pass mycluster;
+    }
+}
+
+# DEBUG: Rendering for {{ inventory_hostname }}
+# DEBUG: group_names = {{ group_names }}
+# DEBUG: site_prefix = {{ site_prefix }}
+# DEBUG: server_group = {{ server_group }}
+# DEBUG: master node = {% for host in groups[server_group] if hostvars[host].master == 'true' %}{{ host }} {% endfor %}
+# DEBUG: all servers = {{ groups[server_group] }}

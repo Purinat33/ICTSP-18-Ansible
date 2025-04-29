@@ -1,0 +1,54 @@
+# === DASHBOARD ===
+[site_dashboard]
+dashboard_1 ansible_host=192.168.56.112 ansible_user=wazuh ansible_connection=local
+
+# === SITE A ===
+[site_a_indexer]
+indexer_a_1 ansible_host=192.168.133.21 ansible_user=wazuh
+
+[site_a_server]
+server_a_1 ansible_host=192.168.133.22 master=true cluster_key=53a5e452e4d96a1f48ab2e596e934577 ansible_user=wazuh
+server_a_2 ansible_host=192.168.133.26 master=false ansible_user=wazuh
+
+[site_a_agent]
+agent_a_1 ansible_host=192.168.133.23 ansible_user=wazuh
+
+
+# This is just test LB
+[site_a_loadbalancer]
+lb_a_1 ansible_host=192.168.133.25 ansible_user=nginx ansible_sudo_pass=wazuh
+
+# === SITE B ===
+[site_b_indexer]
+indexer_b_1 ansible_host=192.168.234.5 ansible_user=wazuh
+
+[site_b_server]
+server_b_1 ansible_host=192.168.234.6 master=true cluster_key=SITEBKEY456 ansible_user=wazuh
+
+[site_b_agent]
+agent_b_1 ansible_host=192.168.234.8 ansible_user=wazuh
+
+# === GROUP DEFINITIONS ===
+[indexer:children]
+site_a_indexer
+site_b_indexer
+
+[server:children]
+site_a_server
+site_b_server
+
+[agent:children]
+site_a_agent
+site_b_agent
+
+[loadbalancer:children]
+site_a_loadbalancer
+
+
+[dashboard:children]
+site_dashboard
+
+[wazuh:children]
+indexer
+server
+dashboard

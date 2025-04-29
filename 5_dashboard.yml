@@ -1,0 +1,119 @@
+---
+- name: Setup Wazuh Dashboard
+  hosts: dashboard
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+#    - name: Install wazuh-dashboard
+#      apt:
+#        name: wazuh-dashboard
+#        state: present
+#        update_cache: yes
+
+    - name: Remove old certs directory if it exists
+      file:
+        path: /etc/wazuh-dashboard/certs
+        state: absent
+
+    - name: Create certs directory for dashboard
+      file:
+        path: /etc/wazuh-dashboard/certs
+        state: directory
+        mode: '0500'
+
+    - name: Extract certs from dashboard cert bundle
+      unarchive:
+        src: /home/{{ ansible_user }}/wazuh-certificates.tar
+        dest: /etc/wazuh-dashboard/certs
+        remote_src: yes
+
+    - name: Move pem to dashboard.pem
+      command: mv /etc/wazuh-dashboard/certs/{{ inventory_hostname }}.pem /etc/wazuh-dashboard/certs/dashboard.pem
+
+    - name: Move key pem to dashboard-key.pem
+      command: mv /etc/wazuh-dashboard/certs/{{ inventory_hostname }}-key.pem /etc/wazuh-dashboard/certs/dashboard-key.pem
+
+    - name: Set permissions for certs
+      file:
+        path: /etc/wazuh-dashboard/certs
+        mode: '0500'
+        recurse: yes
+
+    - name: Set ownership of certs
+      file:
+        path: /etc/wazuh-dashboard/certs
+        owner: wazuh-dashboard
+        group: wazuh-dashboard
+        recurse: yes
+
+    - name: Generate opensearch_dashboards.yml
+      template:
+        src: template/opensearch_dashboards.yml.j2
+        dest: /etc/wazuh-dashboard/opensearch_dashboards.yml
+        mode: '0644'
+
+    - name: Reload systemd for wazuh-dashboard
+      command: systemctl daemon-reexec
+
+    - name: Enable and start wazuh-dashboard (initial launch)
+      systemd:
+        name: wazuh-dashboard
+        enabled: yes
+        state: started
+
+#    - name: Trigger dashboard startup by sending HTTPS request
+#      shell: curl -k https://{{ ansible_host }} || true
+#      register: curl_output
+#      changed_when: false
+
+#    - name: Perform one-time login to initialize dashboard (admin/admin)
+#      script: script/autologin.py
+
+#     # Manual login step required here before proceeding to wazuh.yml setup
+
+#    - name: Wait for wazuh-dashboard to initialize wazuh.yml
+#      wait_for:
+#        path: /usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml
+#        timeout: 30
+
+    - name: Wait until wazuh.yml exists (dashboard initialized)
+      stat:
+        path: /usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml
+      register: wazuh_yml_status
+      until: wazuh_yml_status.stat.exists
+      retries: 10
+      delay: 3
+
+    - name: Generate wazuh.yml (dashboard master server config)
+      template:
+        src: template/wazuh.yml.j2
+        dest: /usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml
+        mode: '0644'
+
+    - name: Restart wazuh-dashboard with full configuration
+      systemd:
+        name: wazuh-dashboard
+        state: restarted
+
+# Wait for 1 irl minute because its weird like that
+    - name: Wait for 1 real minute before restarting agaaaaaain
+      ansible.builtin.pause:
+        seconds: 90
+
+    - name: Restart wazuh-dashboard with full configuration
+      systemd:
+        name: wazuh-dashboard
+        state: restarted
+
+
+- name: Restart Wazuh manager on all servers
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Restart wazuh-manager
+      systemd:
+        name: wazuh-manager
+        state: restarted

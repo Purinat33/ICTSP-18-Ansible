@@ -1,0 +1,141 @@
+---
+- name: MOCK - Step 1 Install Wazuh server and Filebeat
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Install wazuh-manager and filebeat
+      debug:
+        msg: "MOCK: Would install wazuh-manager and filebeat"
+
+    - name: MOCK - Download wazuh-certs-tool.sh
+      debug:
+        msg: "MOCK: Would download wazuh-certs-tool.sh"
+
+    - name: MOCK - Generate config.yml
+      debug:
+        msg: "MOCK: Would render config.yml.j2 to /home/{{ ansible_user }}/config.yml"
+
+    - name: MOCK - Remove existing wazuh-certificates directory
+      debug:
+        msg: "MOCK: Would remove /home/{{ ansible_user }}/wazuh-certificates"
+
+    - name: MOCK - Run certificate generation with root-ca
+      debug:
+        msg: "MOCK: Would run wazuh-certs-tool.sh -A ..."
+
+    - name: MOCK - Archive certificates
+      debug:
+        msg: "MOCK: Would tar wazuh-certificates.tar"
+
+- name: MOCK - Step 2 Create Filebeat keystore before using it
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Create filebeat keystore
+      debug:
+        msg: "MOCK: Would run 'filebeat keystore create --force'"
+
+    - name: MOCK - Add username to keystore
+      debug:
+        msg: "MOCK: Would run 'filebeat keystore add username'"
+
+    - name: MOCK - Add password to keystore
+      debug:
+        msg: "MOCK: Would run 'filebeat keystore add password'"
+
+- name: MOCK - Step 3 Deploy filebeat.yml and related templates
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Show inventory hostname and groups
+      debug:
+        msg:
+          - "MOCK: inventory_hostname = {{ inventory_hostname }}"
+          - "MOCK: group_names = {{ group_names }}"
+
+    - name: MOCK - Set site facts (simulated)
+      debug:
+        msg:
+          - "MOCK: Would set site_group, site_id, site_indexer_group, site_name"
+
+    - name: MOCK - Generate filebeat.yml
+      debug:
+        msg: "MOCK: Would render filebeat.yml.j2 to /etc/filebeat/filebeat.yml"
+
+    - name: MOCK - Generate wazuh-template.json
+      debug:
+        msg: "MOCK: Would render wazuh-template.json.j2 to /etc/filebeat/wazuh-template.json"
+
+    - name: MOCK - Download and extract wazuh Filebeat module
+      debug:
+        msg: "MOCK: Would curl and extract wazuh-filebeat tarball to /usr/share/filebeat/module"
+
+    - name: MOCK - Generate manifest.yml
+      debug:
+        msg: "MOCK: Would render manifest.yml.j2 to /usr/share/filebeat/module/wazuh/alerts/manifest.yml"
+
+- name: MOCK - Step 4 Copy and set certs
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Remove existing certs
+      debug:
+        msg: "MOCK: Would remove /etc/filebeat/certs"
+
+    - name: MOCK - Create certs directory
+      debug:
+        msg: "MOCK: Would create /etc/filebeat/certs"
+
+    - name: MOCK - Extract certs from tar
+      debug:
+        msg: "MOCK: Would unarchive wazuh-certificates.tar to /etc/filebeat/certs"
+
+    - name: MOCK - Move pem to filebeat.pem
+      debug:
+        msg: "MOCK: Would move {{ inventory_hostname }}.pem to filebeat.pem"
+
+    - name: MOCK - Move key to filebeat-key.pem
+      debug:
+        msg: "MOCK: Would move {{ inventory_hostname }}-key.pem to filebeat-key.pem"
+
+    - name: MOCK - Set permissions on certs
+      debug:
+        msg: "MOCK: Would chmod 0500 recursively"
+
+    - name: MOCK - Set ownership
+      debug:
+        msg: "MOCK: Would chown root:root on certs recursively"
+
+- name: MOCK - Step 5 Enable and start filebeat
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Reload systemd
+      debug:
+        msg: "MOCK: Would run systemctl daemon-reexec"
+
+    - name: MOCK - Enable filebeat
+      debug:
+        msg: "MOCK: Would enable filebeat via systemd"
+
+    - name: MOCK - Start filebeat
+      debug:
+        msg: "MOCK: Would start filebeat via systemd"
+
+    - name: MOCK - Enable Wazuh Manager
+      debug:
+        msg: "MOCK: Would enable wazuh-manager via systemd"
+
+    - name: MOCK - Start Wazuh Manager
+      debug:
+        msg: "MOCK: Would start wazuh-manager via systemd"

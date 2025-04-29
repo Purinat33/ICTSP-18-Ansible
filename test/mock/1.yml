@@ -1,0 +1,59 @@
+---
+- name: MOCK - Install system dependencies on all nodes
+  hosts: all
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Ensure /etc/resolv.conf exists in prod
+      ansible.builtin.file:
+        path: ../molecule/default/rendered/resolv/resolv.conf.mock
+        state: touch
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Set DNS nameservers in /etc/resolv.conf
+      ansible.builtin.blockinfile:
+        path: ../molecule/default/rendered/resolv/resolv.conf.mock
+        block: |
+          nameserver 8.8.8.8
+          nameserver 8.8.4.4
+          options edns0 trust-ad
+          search .
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+
+    - name: Ensure /etc/apt/apt.conf exists with proxy config
+      ansible.builtin.copy:
+        dest: ../molecule/default/rendered/apt/apt.conf.mocl
+        content: 'Acquire::http::proxy "http://muproxy-basic.mahidol:8080";'
+        owner: root
+        group: root
+        mode: '0644'
+
+
+    - name: MOCK - Install general packages
+      debug:
+        msg: "MOCK: Would install general system packages (openssh-server, curl, etc.)"
+
+- name: MOCK - Setup Wazuh repository and shared requirements
+  hosts: wazuh
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Install additional system packages for Wazuh nodes
+      debug:
+        msg: "MOCK: Would install debconf, gnupg, procps, etc."
+
+    - name: MOCK - Add Wazuh GPG key
+      debug:
+        msg: "MOCK: Would fetch and import Wazuh GPG key to /usr/share/keyrings/wazuh.gpg"
+
+    - name: MOCK - Add Wazuh APT repository
+      debug:
+        msg: "MOCK: Would write wazuh.list to /etc/apt/sources.list.d/"
+
+    - name: MOCK - Update apt cache
+      debug:
+        msg: "MOCK: Would run apt update"

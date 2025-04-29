@@ -1,0 +1,80 @@
+---
+- name: MOCK - Setup Wazuh Dashboard
+  hosts: dashboard
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Install wazuh-dashboard
+      debug:
+        msg: "MOCK: Would install wazuh-dashboard via apt"
+
+    - name: MOCK - Remove old certs directory
+      debug:
+        msg: "MOCK: Would remove /etc/wazuh-dashboard/certs"
+
+    - name: MOCK - Create certs directory
+      debug:
+        msg: "MOCK: Would create /etc/wazuh-dashboard/certs"
+
+    - name: MOCK - Extract certs from tar
+      debug:
+        msg: "MOCK: Would extract wazuh-certificates.tar into /etc/wazuh-dashboard/certs"
+
+    - name: MOCK - Move cert to dashboard.pem
+      debug:
+        msg: "MOCK: Would move {{ inventory_hostname }}.pem to dashboard.pem"
+
+    - name: MOCK - Move key to dashboard-key.pem
+      debug:
+        msg: "MOCK: Would move {{ inventory_hostname }}-key.pem to dashboard-key.pem"
+
+    - name: MOCK - Set permissions for certs
+      debug:
+        msg: "MOCK: Would chmod 0500 recursively on /etc/wazuh-dashboard/certs"
+
+    - name: MOCK - Set ownership of certs
+      debug:
+        msg: "MOCK: Would chown wazuh-dashboard:wazuh-dashboard recursively"
+
+    - name: MOCK - Generate opensearch_dashboards.yml
+      debug:
+        msg: "MOCK: Would render opensearch_dashboards.yml.j2 to /etc/wazuh-dashboard/opensearch_dashboards.yml"
+
+    - name: MOCK - Reload systemd
+      debug:
+        msg: "MOCK: Would run systemctl daemon-reexec"
+
+    - name: MOCK - Enable and start wazuh-dashboard
+      debug:
+        msg: "MOCK: Would enable and start wazuh-dashboard service"
+
+    - name: MOCK - Simulate dashboard startup wait for wazuh.yml
+      debug:
+        msg: "MOCK: Would wait for /usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml to be created"
+
+    - name: MOCK - Generate wazuh.yml
+      debug:
+        msg: "MOCK: Would render wazuh.yml.j2 to /usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml"
+
+    - name: MOCK - Restart wazuh-dashboard
+      debug:
+        msg: "MOCK: Would restart wazuh-dashboard"
+
+    - name: MOCK - Wait 1 real minute
+      debug:
+        msg: "MOCK: Would pause for 90 seconds"
+
+    - name: MOCK - Final restart of wazuh-dashboard
+      debug:
+        msg: "MOCK: Would restart wazuh-dashboard again"
+
+- name: MOCK - Restart Wazuh manager on all servers
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Restart wazuh-manager
+      debug:
+        msg: "MOCK: Would restart wazuh-manager via systemd"

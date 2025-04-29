@@ -1,0 +1,8 @@
+nodes:
+  indexer:
+    - name: indexer_b_1
+      ip: 192.168.234.5
+
+# DEBUG: Rendering for indexer_b_1
+# DEBUG: group_names = ['indexer', 'site_b_indexer', 'wazuh']
+# DEBUG: role = indexer# DEBUG: IP = 192.168.234.5

@@ -1,0 +1,18 @@
+# DEBUG: Rendering for server_c_1
+# DEBUG: group_names = ['server', 'site_c_server', 'wazuh']
+# DEBUG: site_server_group = site_c_server
+# DEBUG: site_name = site-c
+# DEBUG: index_prefix = site-c-alerts-
+
+module_version: 0.1
+
+var:
+  - name: paths
+    default:
+      - /var/ossec/logs/alerts/alerts.json
+  - name: index_prefix
+    default: site-c-alerts-
+
+input: config/alerts.yml
+
+ingest_pipeline: ingest/pipeline.json

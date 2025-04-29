@@ -1,0 +1,104 @@
+---
+#TODO: LOAD BALANCER
+- name: Book 8 - Install and configure NGINX load balancer
+  hosts: loadbalancer
+  become: yes
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+      become: yes
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Ensure nginx is enabled and started
+      systemd:
+        name: nginx
+        enabled: yes
+        state: started
+
+    - name: Check if stream module is compiled dynamically
+      shell: nginx -V 2>&1 | grep --color=never dynamic
+      register: nginx_modules
+      changed_when: false
+
+    - name: Install libnginx-mod-stream
+      apt:
+        name: libnginx-mod-stream
+        state: present
+
+    - name: Debug dynamic module info
+      debug:
+        var: nginx_modules.stdout_lines
+
+#    - name: Comment out old include line inside http block
+#      replace:
+#        path: /etc/nginx/nginx.conf
+#        regexp: '^\s*include\s+/etc/nginx/conf.d/\*\.conf;'
+#        replace: 'include /etc/nginx/conf.d/*.conf;'
+#      notify: Reload NGINX
+
+#    - name: Insert include /etc/nginx/conf.d/*.conf; above http block
+#      blockinfile:
+#        path: /etc/nginx/nginx.conf
+#        insertafter: '^include /usr/share/nginx/modules/.*\.conf;'
+#        block: |
+#          include /etc/nginx/conf.d/*.conf;
+#      notify: Reload NGINX
+
+#    - name: Move conf.d include outside http block in nginx.conf
+#      replace:
+#        path: /etc/nginx/nginx.conf
+#        regexp: '^\s*include\s+/etc/nginx/conf\.d/\*\.conf;'
+#        replace: ''
+#      notify: append include above http
+
+#    - name: Append include line above http block
+#      blockinfile:
+#        path: /etc/nginx/nginx.conf
+#        insertafter: 'pid /run/nginx.pid;'
+#        block: |
+#          include /etc/nginx/conf.d/*.conf;
+#        marker: ""
+    - name: Remove include from http block
+      ansible.builtin.lineinfile:
+        path: /etc/nginx/nginx.conf
+        regexp: '^\s*include\s+/etc/nginx/conf\.d/\*\.conf;'
+        state: absent
+        backup: yes
+
+    - name: Add include after modules include
+      ansible.builtin.lineinfile:
+        path: /etc/nginx/nginx.conf
+        line: 'include /etc/nginx/conf.d/*.conf;'
+        insertafter: '^\s*include\s+/etc/nginx/modules-enabled/\*\.conf;'
+        state: present
+        backup: yes
+
+    - name: Reload NGINX
+      systemd:
+        name: nginx
+        state: reloaded
+
+
+
+    - name: Deploy Wazuh load balancer stream config
+      template:
+        src: template/nginx_wazuh.conf.j2
+        dest: /etc/nginx/conf.d/wazuh_load_balancer.conf
+        mode: '0644'
+
+    - name: Test NGINX config
+      command: nginx -t
+      register: nginx_test
+      failed_when: "'successful' not in nginx_test.stderr"
+
+    - name: Reload NGINX
+      systemd:
+        name: nginx
+        state: reloaded
+
+

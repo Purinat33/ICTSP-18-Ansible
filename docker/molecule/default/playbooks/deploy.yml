@@ -1,0 +1,11 @@
+---
+- name: Wazuh Full Deployment (safe for test mode)
+  hosts: all
+  gather_facts: false
+  vars:
+    is_test_mode: "{{ is_test_mode | default(false) }}"
+
+  tasks:
+    - name: Include installation playbooks only if not in test mode
+      include_tasks: main.yml
+      when: not is_test_mode

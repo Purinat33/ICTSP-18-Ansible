@@ -1,0 +1,201 @@
+---
+# Move tasks from book 1-8 that require internet access into here.
+# From Book 1: Entire book
+- name: Install system dependencies on all nodes
+  hosts: all
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+#    - name: Ensure /etc/resolv.conf exists
+#      ansible.builtin.file:
+#        path: /etc/resolv.conf
+#        state: touch
+#        owner: root
+#        group: root
+#        mode: '0644'
+#    - name: Check if /etc/resolv.conf exists
+#      stat:
+#        path: /etc/resolv.conf
+#      register: resolv_conf_check
+
+#    - name: Set DNS nameservers in /etc/resolv.conf
+#      ansible.builtin.blockinfile:
+#        path: /etc/resolv.conf
+#        block: |
+#          nameserver 8.8.8.8
+#          nameserver 8.8.4.4
+#          options edns0 trust-ad
+#          search .
+#        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+#      when: resolv_conf_check.stat.exists
+# This part will be run in Mahidol
+#    - name: Ensure /etc/apt/apt.conf exists with proxy config
+#      ansible.builtin.copy:
+#        dest: /etc/apt/apt.conf
+#        content: 'Acquire::http::proxy "http://muproxy-basic.mahidol:8080";'
+#        owner: root
+#        group: root
+#        mode: '0644'
+
+
+    - name: Install general packages
+      apt:
+        name:
+          - openssh-server
+          - openssh-client
+          - build-essential
+          - dkms
+          - debhelper
+          - tar
+          - curl
+          - libcap2-bin
+        update_cache: yes
+
+- name: Setup Wazuh repository and shared requirements
+  hosts: wazuh
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Install additional system packages for Wazuh nodes
+      apt:
+        name:
+          - debconf
+          - adduser
+          - procps
+          - gnupg
+          - apt-transport-https
+        state: present
+        update_cache: yes
+
+    - name: Add Wazuh GPG key
+      shell: |
+        curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | gpg --no-default-keyring --keyring gnupg-ring:/usr/share/keyrings/wazuh.gpg --import
+        chmod 644 /usr/share/keyrings/wazuh.gpg
+      args:
+        creates: /usr/share/keyrings/wazuh.gpg
+
+    - name: Add Wazuh APT repository
+      copy:
+        dest: /etc/apt/sources.list.d/wazuh.list
+        content: |
+          deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+# From book 2: Download Wazuh Certs tool
+- name: Download Wazuh Certs tool
+  hosts: all
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Download Wazuh certificate tool
+      get_url:
+        url: https://packages.wazuh.com/4.11/wazuh-certs-tool.sh
+        dest: /home/{{ ansible_user }}/wazuh-certs-tool.sh
+        mode: '0755'
+        force: true
+
+# BOOK 3 - Install Wazuh Indexer
+- name: Step 3 Install and configure Wazuh Indexer with certificates
+  hosts: indexer
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Install wazuh-indexer
+      apt:
+        name: wazuh-indexer
+        state: present
+        update_cache: yes
+
+# Book 4 - Installing + Packages
+- name: Step 1 Install Wazuh server and Filebeat
+  hosts: server
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Install wazuh-manager and filebeat
+      apt:
+        name:
+          - wazuh-manager
+          - filebeat
+        state: present
+        update_cache: yes
+
+    - name: Download and extract wazuh Filebeat module
+      shell: curl -s https://packages.wazuh.com/4.x/filebeat/wazuh-filebeat-0.3.tar.gz | tar -xvz -C /usr/share/filebeat/module
+
+# Book 5 Dashboard
+- name: Setup Wazuh Dashboard
+  hosts: dashboard
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: Install wazuh-dashboard
+      apt:
+        name: wazuh-dashboard
+        state: present
+        update_cache: yes
+
+# Book 6 
+- name: Book 6 - Install and Configure Wazuh Agents
+  hosts: agent
+  become: yes
+  vars_files:
+    - wazuh.yml
+
+  tasks:
+    - name: Install dependencies for Wazuh agent
+      apt:
+        name:
+          - curl
+          - apt-transport-https
+          - lsb-release
+          - gnupg
+        update_cache: yes
+
+    - name: Add Wazuh GPG key
+      shell: |
+        curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | gpg --dearmor > /usr/share/keyrings/wazuh.gpg
+        chmod 644 /usr/share/keyrings/wazuh.gpg
+      args:
+        creates: /usr/share/keyrings/wazuh.gpg
+
+    - name: Add Wazuh APT repository
+      copy:
+        dest: /etc/apt/sources.list.d/wazuh.list
+        content: |
+          deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main
+
+    - name: Install Wazuh agent
+      apt:
+        name: wazuh-agent
+        update_cache: yes
+        state: present
+
+
+# Book 8 LB
+- name: Book 8 - Install and configure NGINX load balancer
+  hosts: loadbalancer
+  become: yes
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+      become: yes
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+    - name: Install libnginx-mod-stream
+      apt:
+        name: libnginx-mod-stream
+        state: present

@@ -1,0 +1,58 @@
+---
+- name: MOCK - Step 1 Generate config.yml and dashboard certificates
+  hosts: dashboard
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Ensure cert generation dir exists
+      debug:
+        msg: "MOCK: Would create /home/{{ ansible_user }}"
+
+    - name: MOCK - Check if root-ca.pem already exists
+      debug:
+        msg: "MOCK: Simulate checking for root-ca.pem"
+      register: root_ca_check
+
+    - name: MOCK - Skip cert generation if root-ca.pem already exists
+      debug:
+        msg: "MOCK: Root CA already exists, skipping certificate generation."
+      when: false  # simulate that root-ca does exist
+
+    - name: MOCK - Generate config.yml from template
+      debug:
+        msg: "MOCK: Would render config.yml.j2 to /home/{{ ansible_user }}/config.yml"
+      when: true  # simulate that root-ca does not exist
+
+    - name: MOCK - Download Wazuh certificate tool
+      debug:
+        msg: "MOCK: Would download wazuh-certs-tool.sh"
+      when: true
+
+    - name: MOCK - Generate certificates and root-ca
+      debug:
+        msg: "MOCK: Would run wazuh-certs-tool.sh -A"
+      when: true
+
+    - name: MOCK - Archive the generated certificates
+      debug:
+        msg: "MOCK: Would tar wazuh-certificates directory"
+      when: true
+
+- name: MOCK - Step 2 Copy root-ca.* to all Wazuh devices (excluding agents and dashboard)
+  hosts: wazuh:!agent:!dashboard
+  become: yes
+  vars_files:
+    - wazuh.yml
+  tasks:
+    - name: MOCK - Create cert destination dir if not exist
+      debug:
+        msg: "MOCK: Would create /home/{{ ansible_user }}/certs"
+
+    - name: MOCK - Copy root-ca.pem
+      debug:
+        msg: "MOCK: Would copy root-ca.pem from dashboard"
+
+    - name: MOCK - Copy root-ca.key
+      debug:
+        msg: "MOCK: Would copy root-ca.key from dashboard"

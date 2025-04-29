@@ -1,0 +1,8 @@
+nodes:
+  server:
+    - name: server_c_1
+      ip: 192.168.1.3
+
+# DEBUG: Rendering for server_c_1
+# DEBUG: group_names = ['server', 'site_c_server', 'wazuh']
+# DEBUG: role = server# DEBUG: IP = 192.168.1.3

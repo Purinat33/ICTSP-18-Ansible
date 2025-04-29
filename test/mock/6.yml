@@ -1,0 +1,51 @@
+---
+- name: MOCK - Book 6 - Install and Configure Wazuh Agents
+  hosts: agent
+  become: yes
+  vars_files:
+    - wazuh.yml
+
+  tasks:
+    - name: MOCK - Install dependencies for Wazuh agent
+      debug:
+        msg: "MOCK: Would install curl, apt-transport-https, lsb-release, gnupg"
+
+    - name: MOCK - Add Wazuh GPG key
+      debug:
+        msg: "MOCK: Would download and import Wazuh GPG key to /usr/share/keyrings/wazuh.gpg"
+
+    - name: MOCK - Add Wazuh APT repository
+      debug:
+        msg: "MOCK: Would create /etc/apt/sources.list.d/wazuh.list with Wazuh APT source"
+
+    - name: MOCK - Install Wazuh agent
+      debug:
+        msg: "MOCK: Would install wazuh-agent via apt"
+
+    - name: MOCK - Detect site prefix for agent
+      debug:
+        msg: "MOCK: Would extract site group and prefix from agent group membership"
+
+    - name: MOCK - Determine manager_host (LB or master server)
+      debug:
+        msg: "MOCK: Would determine manager_host for this agent based on LB or master"
+
+    - name: MOCK - Set manager IP
+      debug:
+        msg: "MOCK: Would resolve manager_ip from manager_host (with fallback to 127.0.0.1)"
+
+    - name: MOCK - Debug manager_host
+      debug:
+        msg: "MOCK: Manager host for" # {{ inventory_hostname }} is {{ manager_host }}"
+
+    - name: MOCK - Debug resolved manager_ip
+      debug:
+        msg: "MOCK: Manager IP for" # {{ inventory_hostname }} is {{ manager_ip }}"
+
+    - name: MOCK - Generate ossec.conf for agents
+      debug:
+        msg: "MOCK: Would render ossec.conf.j2 to /var/ossec/etc/ossec.conf"
+
+    - name: MOCK - Enable and start wazuh-agent
+      debug:
+        msg: "MOCK: Would enable and start wazuh-agent via systemd"
